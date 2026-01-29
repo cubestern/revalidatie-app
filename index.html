@@ -2062,6 +2062,102 @@
     </div>
 
     <script>
+        // Password Protection
+        (function() {
+            const correctPassword = 'pleasenietkapotmaken';
+            const isAuthenticated = sessionStorage.getItem('auth') === 'true';
+
+            if (!isAuthenticated) {
+                // Hide app content
+                document.querySelector('.app').style.display = 'none';
+
+                // Create password overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: var(--bg);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10000;
+                `;
+
+                const passwordBox = document.createElement('div');
+                passwordBox.style.cssText = `
+                    background: var(--bg-card);
+                    padding: 32px;
+                    border-radius: var(--radius);
+                    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+                    max-width: 320px;
+                    width: 90%;
+                    text-align: center;
+                `;
+
+                passwordBox.innerHTML = `
+                    <h2 style="margin-bottom: 8px; font-size: 20px; font-weight: 600;">Welcome</h2>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;">Enter password to continue</p>
+                    <input type="password" id="passwordInput" placeholder="Password" style="
+                        width: 100%;
+                        padding: 12px 16px;
+                        border: 1px solid var(--border);
+                        border-radius: var(--radius-xs);
+                        font-family: inherit;
+                        font-size: 15px;
+                        margin-bottom: 16px;
+                        outline: none;
+                    ">
+                    <button id="passwordSubmit" style="
+                        width: 100%;
+                        padding: 12px;
+                        background: var(--accent);
+                        color: white;
+                        border: none;
+                        border-radius: var(--radius-xs);
+                        font-family: inherit;
+                        font-size: 15px;
+                        font-weight: 600;
+                        cursor: pointer;
+                    ">Enter</button>
+                    <p id="passwordError" style="
+                        color: #ef4444;
+                        font-size: 13px;
+                        margin-top: 12px;
+                        display: none;
+                    ">Incorrect password</p>
+                `;
+
+                overlay.appendChild(passwordBox);
+                document.body.appendChild(overlay);
+
+                const input = document.getElementById('passwordInput');
+                const submit = document.getElementById('passwordSubmit');
+                const error = document.getElementById('passwordError');
+
+                function checkPassword() {
+                    if (input.value === correctPassword) {
+                        sessionStorage.setItem('auth', 'true');
+                        overlay.remove();
+                        document.querySelector('.app').style.display = 'block';
+                    } else {
+                        error.style.display = 'block';
+                        input.value = '';
+                        input.focus();
+                    }
+                }
+
+                submit.addEventListener('click', checkPassword);
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') checkPassword();
+                });
+
+                setTimeout(() => input.focus(), 100);
+            }
+        })();
+
         // Muscle mapping helper - maps keywords to SVG muscle IDs
         function mapMuscles(goodFor) {
             const muscles = [];
