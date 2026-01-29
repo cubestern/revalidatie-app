@@ -1,0 +1,3815 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Stretch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #fafafa;
+            --bg-card: #ffffff;
+            --text: #111111;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border: #eeeeee;
+            --accent: #111111;
+            --accent-soft: #f5f5f5;
+            --radius: 16px;
+            --radius-sm: 12px;
+            --radius-xs: 8px;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--bg);
+            padding-bottom: 100px;
+            position: relative;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 12px 0;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            z-index: 100;
+        }
+
+        .nav-inner {
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 500;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--text);
+        }
+
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            stroke-width: 1.5;
+        }
+
+        /* Header */
+        .header {
+            padding: 60px 24px 24px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        .header-subtitle {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin-top: 4px;
+        }
+
+        .profile-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Survey Section - Swipeable Check-in */
+        .survey-section {
+            padding: 0 24px;
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .survey-section.dismissed {
+            display: none;
+        }
+
+        .survey-wrapper {
+            position: relative;
+        }
+
+        .survey-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Dismiss button - circle with X */
+        .survey-dismiss {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent-soft);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .survey-dismiss:hover {
+            background: var(--border);
+            transform: scale(1.05);
+        }
+
+        .survey-dismiss svg {
+            width: 16px;
+            height: 16px;
+            stroke: var(--text-secondary);
+            transition: stroke 0.2s;
+        }
+
+        .survey-dismiss:hover svg {
+            stroke: var(--text);
+        }
+
+        .survey-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-right: 40px;
+        }
+
+        .survey-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--accent-soft);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .survey-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: var(--text);
+        }
+
+        .survey-title {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .survey-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Slides container */
+        .survey-slides {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .survey-slides-track {
+            display: flex;
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .survey-slide {
+            min-width: 100%;
+            padding: 0 4px;
+            box-sizing: border-box;
+        }
+
+        .survey-question {
+            margin-bottom: 16px;
+        }
+
+        .survey-question-text {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 14px;
+            color: var(--text);
+        }
+
+        .survey-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .survey-option {
+            padding: 10px 16px;
+            background: var(--accent-soft);
+            border: 1px solid transparent;
+            border-radius: var(--radius-xs);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .survey-option:hover {
+            border-color: var(--border);
+            background: var(--bg-elevated);
+        }
+
+        .survey-option.selected {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Navigation arrows */
+        .survey-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .survey-nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-soft);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .survey-nav-btn:hover:not(:disabled) {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .survey-nav-btn:hover:not(:disabled) svg {
+            stroke: white;
+        }
+
+        .survey-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .survey-nav-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--text);
+            stroke-width: 2;
+            transition: stroke 0.2s;
+        }
+
+        /* Progress dots in center */
+        .survey-progress {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .survey-progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .survey-progress-dot.active {
+            background: var(--accent);
+            transform: scale(1.2);
+        }
+
+        .survey-progress-dot.completed {
+            background: var(--accent);
+            opacity: 0.5;
+        }
+
+        /* Submit button */
+        .survey-submit {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .survey-submit:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+        }
+
+        .survey-submit svg {
+            width: 18px;
+            height: 18px;
+            stroke: white;
+            stroke-width: 2;
+        }
+
+        .survey-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Results state */
+        .survey-results {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .survey-results-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--accent-soft);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+
+        .survey-results-icon svg {
+            width: 28px;
+            height: 28px;
+            stroke: var(--accent);
+        }
+
+        .survey-results-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .survey-results-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .survey-results-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-xs);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .survey-results-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .survey-results-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .survey-results-btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .survey-results-btn-secondary:hover {
+            background: var(--accent-soft);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .survey-results-btn-secondary svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Search Results */
+        .search-result-card {
+            transition: all 0.2s ease;
+        }
+
+        .search-result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .search-result-card.selected {
+            background: var(--accent-soft) !important;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 90px;
+            right: calc(50% - 240px + 24px);
+            height: 54px;
+            padding: 0 22px;
+            border-radius: 27px;
+            background: var(--accent);
+            border: none;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 100;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            letter-spacing: -0.2px;
+        }
+
+        @media (max-width: 480px) {
+            .fab {
+                right: 24px;
+            }
+        }
+
+        .fab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .fab:active {
+            transform: translateY(0px);
+            transition: all 0.1s ease;
+        }
+
+        .fab svg {
+            width: 20px;
+            height: 20px;
+            stroke: white;
+            stroke-width: 2.5;
+        }
+
+        /* Form Styles */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-input,
+        .form-textarea {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-family: inherit;
+            background: var(--bg-card);
+            color: var(--text);
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: var(--radius-xs);
+            transition: background 0.2s;
+        }
+
+        .form-checkbox:hover {
+            background: var(--accent-soft);
+        }
+
+        .form-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .form-submit-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            margin-top: 8px;
+        }
+
+        .form-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+        }
+
+        /* Categories Section */
+        .section {
+            padding: 0 24px;
+            margin-bottom: 32px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .section-link {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* Category Cards */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .category-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .category-card:hover {
+            border-color: #ddd;
+            transform: translateY(-2px);
+        }
+
+        .category-card.featured {
+            grid-column: span 2;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .category-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+
+        .category-card.featured .category-icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 0;
+        }
+
+        .category-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .category-card.featured .category-icon svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .category-icon.latest { background: #e8f5e9; color: #2e7d32; }
+        .category-icon.daily { background: #fff3e0; color: #ef6c00; }
+        .category-icon.rehab { background: #e3f2fd; color: #1976d2; }
+        .category-icon.strength { background: #fce4ec; color: #c2185b; }
+
+        .category-content {
+            flex: 1;
+        }
+
+        .category-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .category-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .category-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .category-badge {
+            padding: 4px 8px;
+            background: var(--accent-soft);
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        /* Quick Stats */
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            padding: 0 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Today Section */
+        .today-card {
+            background: var(--accent);
+            color: white;
+            border-radius: var(--radius);
+            padding: 24px;
+            margin: 0 24px 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .today-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+
+        .today-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .today-desc {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        .today-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: white;
+            color: var(--accent);
+            border-radius: var(--radius-xs);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+
+        .today-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .today-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Category Detail Screen */
+        .detail-header {
+            padding: 60px 24px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-soft);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: var(--border);
+        }
+
+        .back-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--text);
+        }
+
+        .detail-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* Exercise List */
+        .exercise-list {
+            padding: 0 24px;
+            padding-bottom: 100px;
+        }
+
+        /* Exercise Groups */
+        .exercise-group {
+            margin-bottom: 24px;
+        }
+
+        .exercise-group-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .exercise-group-header:hover {
+            background: var(--accent-soft);
+        }
+
+        .exercise-group-header.open {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            margin-bottom: 0;
+        }
+
+        .exercise-group-title {
+            font-size: 16px;
+            font-weight: 600;
+            flex: 1;
+            margin: 0;
+        }
+
+        .exercise-group-count {
+            font-size: 13px;
+            color: var(--text-secondary);
+            background: var(--accent-soft);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .exercise-group-arrow {
+            width: 20px;
+            height: 20px;
+            stroke: var(--text-secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .exercise-group-header.open .exercise-group-arrow {
+            transform: rotate(180deg);
+        }
+
+        .exercise-group-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-bottom-left-radius: var(--radius-sm);
+            border-bottom-right-radius: var(--radius-sm);
+            padding: 0 12px;
+        }
+
+        .exercise-group-list.open {
+            max-height: 2000px;
+            padding: 12px;
+        }
+
+        .exercise-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .exercise-card:hover {
+            border-color: #ddd;
+        }
+
+        .exercise-card.selected {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+        }
+
+        .exercise-check {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .exercise-card.selected .exercise-check {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .exercise-check svg {
+            width: 14px;
+            height: 14px;
+            stroke: white;
+            stroke-width: 3;
+            opacity: 0;
+        }
+
+        .exercise-card.selected .exercise-check svg {
+            opacity: 1;
+        }
+
+        .exercise-info {
+            flex: 1;
+        }
+
+        .exercise-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .exercise-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .exercise-duration {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .exercise-equipment {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .exercise-equipment::before {
+            content: "•";
+            font-size: 8px;
+        }
+
+        /* Start Button */
+        .start-bar {
+            position: fixed;
+            bottom: 80px;
+            left: 0;
+            right: 0;
+            padding: 16px 24px;
+            background: linear-gradient(to top, var(--bg) 80%, transparent);
+        }
+
+        .start-bar-inner {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .start-btn:disabled {
+            background: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .start-btn:not(:disabled):hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Workout Screen */
+        .workout-screen {
+            min-height: 100vh;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .workout-header {
+            padding: 60px 24px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .workout-progress-info {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .workout-progress-info strong {
+            color: var(--text);
+        }
+
+        .workout-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-soft);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .workout-close svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--text);
+        }
+
+        .workout-progress-bar {
+            height: 4px;
+            background: var(--border);
+            margin: 0 24px 32px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .workout-progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+
+        /* Body Visualization */
+        .workout-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 24px;
+        }
+
+        .body-container {
+            width: 180px;
+            height: 320px;
+            position: relative;
+        }
+
+        .body-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .body-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .muscle {
+            fill: transparent;
+            stroke: transparent;
+            transition: all 0.5s ease-out;
+        }
+
+        .muscle.active {
+            fill: url(#pingGlow);
+            filter: url(#softBlur);
+            animation: ping 2s ease-in-out infinite;
+        }
+
+        @keyframes ping {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        /* Workout Content */
+        .workout-content {
+            padding: 32px 24px;
+            text-align: center;
+        }
+
+        .workout-exercise-name {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .workout-instruction {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 340px;
+            margin: 0 auto 16px;
+        }
+
+        .workout-cues {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+            line-height: 1.5;
+            max-width: 300px;
+            margin: 0 auto 24px;
+            padding: 12px 16px;
+            background: var(--accent-soft);
+            border-radius: var(--radius-xs);
+        }
+
+        .workout-timer {
+            margin-bottom: 32px;
+        }
+
+        .timer-display {
+            font-size: 72px;
+            font-weight: 700;
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+
+        .timer-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* Skip time buttons */
+        .timer-skip-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            margin-bottom: 32px;
+        }
+
+        .skip-btn {
+            padding: 10px 20px;
+            border-radius: var(--radius-xs);
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .skip-btn:hover {
+            background: var(--accent-soft);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .workout-controls {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .control-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background: var(--accent-soft);
+        }
+
+        .control-btn.primary {
+            width: 72px;
+            height: 72px;
+            background: var(--accent);
+            border: none;
+        }
+
+        .control-btn.primary:hover {
+            transform: scale(1.05);
+        }
+
+        .control-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--text);
+        }
+
+        .control-btn.primary svg {
+            stroke: white;
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Next Preview */
+        .next-preview {
+            padding: 16px 24px;
+            background: var(--accent-soft);
+            margin: 0 24px 24px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .next-preview-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .next-preview-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Complete Screen */
+        .complete-screen {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .complete-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .complete-icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            stroke-width: 2.5;
+        }
+
+        .complete-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .complete-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+        }
+
+        .complete-stats {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+
+        .complete-stat-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .complete-stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .complete-btn {
+            padding: 16px 48px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Home Screen -->
+        <div class="screen active" id="homeScreen">
+            <div class="header">
+                <div class="header-top">
+                    <div>
+                        <h1>Good morning.</h1>
+                        <p class="header-subtitle">Ready to stretch?</p>
+                    </div>
+                    <div class="profile-btn">JB</div>
+                </div>
+            </div>
+
+            <!-- Survey Section - Quick Check-in -->
+            <div class="survey-section" id="surveySection">
+                <div class="survey-wrapper">
+                    <div class="survey-card">
+                        <!-- Dismiss button -->
+                        <button class="survey-dismiss" onclick="dismissSurvey()" title="Dismiss">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6L6 18M6 6l12 12"/>
+                            </svg>
+                        </button>
+
+                        <div class="survey-header">
+                            <div class="survey-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M9 12h6M12 9v6M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="survey-title">Quick check-in</div>
+                                <div class="survey-subtitle">Help us personalize your exercises</div>
+                            </div>
+                        </div>
+
+                        <!-- Questions slider -->
+                        <div class="survey-slides" id="surveySlides">
+                            <div class="survey-slides-track" id="surveySlidesTrack">
+                                <!-- Slide 1: Goals -->
+                                <div class="survey-slide" data-question="goals">
+                                    <div class="survey-question">
+                                        <div class="survey-question-text">What's your main goal?</div>
+                                        <div class="survey-options">
+                                            <button class="survey-option" data-value="mobility">Mobility</button>
+                                            <button class="survey-option" data-value="rehab">Rehabilitation</button>
+                                            <button class="survey-option" data-value="strength">Strength</button>
+                                            <button class="survey-option" data-value="stability">Stability</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Slide 2: Body area -->
+                                <div class="survey-slide" data-question="areas">
+                                    <div class="survey-question">
+                                        <div class="survey-question-text">Which area needs attention?</div>
+                                        <div class="survey-options">
+                                            <button class="survey-option" data-value="shoulder">Shoulder</button>
+                                            <button class="survey-option" data-value="neck">Neck</button>
+                                            <button class="survey-option" data-value="lowback_core">Lower back</button>
+                                            <button class="survey-option" data-value="hip_glute">Hip / Glutes</button>
+                                            <button class="survey-option" data-value="knee">Knee</button>
+                                            <button class="survey-option" data-value="ankle_foot">Ankle / Foot</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Slide 3: How it feels -->
+                                <div class="survey-slide" data-question="feels">
+                                    <div class="survey-question">
+                                        <div class="survey-question-text">How does it feel?</div>
+                                        <div class="survey-options">
+                                            <button class="survey-option" data-value="stiff_tight">Stiff / Tight</button>
+                                            <button class="survey-option" data-value="unstable_weak">Weak / Unstable</button>
+                                            <button class="survey-option" data-value="sensitive_overloaded">Sensitive / Sore</button>
+                                            <button class="survey-option" data-value="general">Just maintenance</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Slide 4: Intensity -->
+                                <div class="survey-slide" data-question="intensity">
+                                    <div class="survey-question">
+                                        <div class="survey-question-text">What intensity level today?</div>
+                                        <div class="survey-options">
+                                            <button class="survey-option" data-value="low">Low - Gentle</button>
+                                            <button class="survey-option" data-value="medium">Medium - Moderate</button>
+                                            <button class="survey-option" data-value="high">High - Challenging</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Slide 5: Time -->
+                                <div class="survey-slide" data-question="timeMinutes">
+                                    <div class="survey-question">
+                                        <div class="survey-question-text">How much time do you have?</div>
+                                        <div class="survey-options">
+                                            <button class="survey-option" data-value="5">5 minutes</button>
+                                            <button class="survey-option" data-value="10">10 minutes</button>
+                                            <button class="survey-option" data-value="20">20 minutes</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation -->
+                        <div class="survey-nav">
+                            <button class="survey-nav-btn" id="surveyPrev" onclick="surveyPrev()" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M15 18l-6-6 6-6"/>
+                                </svg>
+                            </button>
+
+                            <div class="survey-progress" id="surveyProgress">
+                                <div class="survey-progress-dot active"></div>
+                                <div class="survey-progress-dot"></div>
+                                <div class="survey-progress-dot"></div>
+                                <div class="survey-progress-dot"></div>
+                                <div class="survey-progress-dot"></div>
+                            </div>
+
+                            <button class="survey-nav-btn" id="surveyNext" onclick="surveyNext()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M9 18l6-6-6-6"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Results (hidden initially) -->
+                        <div class="survey-results" id="surveyResults" style="display: none;">
+                            <div class="survey-results-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 6L9 17l-5-5"/>
+                                </svg>
+                            </div>
+                            <div class="survey-results-title">Perfect!</div>
+                            <div class="survey-results-text">We found <span id="exerciseCount">5</span> exercises for you</div>
+                            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 16px;">
+                                <button class="survey-results-btn" onclick="showRecommendedExercises()">
+                                    View exercises
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                                    </svg>
+                                </button>
+                                <button class="survey-results-btn-secondary" onclick="redoSurvey()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 4v6h6M23 20v-6h-6"/>
+                                        <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+                                    </svg>
+                                    Redo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Recommendation -->
+            <div class="today-card">
+                <div class="today-label">Today's pick</div>
+                <div class="today-title" id="todayTitle">Morning Mobility</div>
+                <div class="today-desc" id="todayDesc">A gentle 10-minute routine to start your day right.</div>
+                <a href="#" class="today-btn" onclick="startMorningMobility(); return false;">
+                    Start now
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">Sessions this week</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">45m</div>
+                    <div class="stat-label">Total time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">7</div>
+                    <div class="stat-label">Day streak</div>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Browse</h2>
+                </div>
+                <div class="categories-grid">
+                    <div class="category-card featured" onclick="showCategory('latest')">
+                        <div class="category-icon latest">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                        <div class="category-content">
+                            <div class="category-name">Latest</div>
+                            <div class="category-desc">New routines and exercises added recently</div>
+                            <div class="category-meta">
+                                <span class="category-badge">Updated today</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="category-card" onclick="showCategory('daily')">
+                        <div class="category-icon daily">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                        </div>
+                        <div class="category-name">Daily Stretches</div>
+                        <div class="category-desc">Quick routines for every day</div>
+                    </div>
+                    <div class="category-card" onclick="showCategory('rehab')">
+                        <div class="category-icon rehab">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                            </svg>
+                        </div>
+                        <div class="category-name">Rehabilitation</div>
+                        <div class="category-desc">Recovery-focused exercises</div>
+                    </div>
+                    <div class="category-card" onclick="showCategory('strength')">
+                        <div class="category-icon strength">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M6.5 6.5L17.5 17.5M6.5 17.5L17.5 6.5"/>
+                                <path d="M3 12h3M18 12h3M12 3v3M12 18v3"/>
+                            </svg>
+                        </div>
+                        <div class="category-name">Strength</div>
+                        <div class="category-desc">Build muscle and stability</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Detail Screen -->
+        <div class="screen" id="categoryScreen">
+            <div class="detail-header">
+                <button class="back-btn" onclick="showScreen('home')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                <h1 class="detail-title" id="categoryTitle">Rehabilitation</h1>
+            </div>
+            <div class="exercise-list" id="exerciseList">
+                <!-- Exercises will be inserted here -->
+            </div>
+            <div class="start-bar">
+                <div class="start-bar-inner">
+                    <button class="start-btn" id="startBtn" disabled onclick="startWorkout()">
+                        Select exercises to start
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workout Screen -->
+        <div class="screen" id="workoutScreen">
+            <div class="workout-screen">
+                <div class="workout-header">
+                    <div class="workout-progress-info">
+                        Exercise <strong id="currentExercise">1</strong> of <strong id="totalExercises">5</strong>
+                    </div>
+                    <button class="workout-close" onclick="closeWorkout()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="workout-progress-bar">
+                    <div class="workout-progress-fill" id="progressFill" style="width: 20%"></div>
+                </div>
+
+                <div class="workout-body">
+                    <div class="body-container">
+                        <!-- Anatomical image as base -->
+                        <img src="body-front.png.png" alt="Body" class="body-image">
+
+                        <!-- SVG overlay for muscle highlighting -->
+                        <svg class="body-svg" viewBox="0 0 100 175" id="bodySvg">
+                            <defs>
+                                <!-- Radial gradient for ping/glow effect -->
+                                <radialGradient id="pingGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                                    <stop offset="0%" style="stop-color: rgb(239, 134, 119); stop-opacity: 0.8"/>
+                                    <stop offset="40%" style="stop-color: rgb(239, 134, 119); stop-opacity: 0.5"/>
+                                    <stop offset="100%" style="stop-color: rgb(239, 134, 119); stop-opacity: 0"/>
+                                </radialGradient>
+
+                                <!-- Soft blur filter -->
+                                <filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+                                </filter>
+                            </defs>
+
+                            <!-- Neck -->
+                            <ellipse class="muscle" id="m-neck" cx="50" cy="14" rx="5" ry="3"/>
+
+                            <!-- Trapezius - smooth curved shape -->
+                            <path class="muscle" id="m-traps" d="M30 17 Q40 13, 50 13 Q60 13, 70 17 Q65 20, 50 19 Q35 20, 30 17 Z"/>
+
+                            <!-- Left Deltoid - rounded -->
+                            <path class="muscle" id="m-shoulder-l" d="M28 17 Q20 20, 18 28 Q19 34, 23 36 Q28 32, 30 24 Q30 20, 28 17 Z"/>
+
+                            <!-- Right Deltoid -->
+                            <path class="muscle" id="m-shoulder-r" d="M72 17 Q80 20, 82 28 Q81 34, 77 36 Q72 32, 70 24 Q70 20, 72 17 Z"/>
+
+                            <!-- Left Pec - fan shaped -->
+                            <path class="muscle" id="m-chest-l" d="M30 22 Q26 28, 24 34 Q28 42, 38 45 Q44 44, 48 40 L48 26 Q40 22, 30 22 Z"/>
+
+                            <!-- Right Pec -->
+                            <path class="muscle" id="m-chest-r" d="M70 22 Q74 28, 76 34 Q72 42, 62 45 Q56 44, 52 40 L52 26 Q60 22, 70 22 Z"/>
+
+                            <!-- Left Bicep - oval -->
+                            <ellipse class="muscle" id="m-bicep-l" cx="20" cy="44" rx="4" ry="9"/>
+
+                            <!-- Right Bicep -->
+                            <ellipse class="muscle" id="m-bicep-r" cx="80" cy="44" rx="4" ry="9"/>
+
+                            <!-- Left Forearm - tapered -->
+                            <path class="muscle" id="m-forearm-l" d="M17 52 Q14 62, 13 74 Q15 76, 18 74 Q20 64, 22 54 Q20 52, 17 52 Z"/>
+
+                            <!-- Right Forearm -->
+                            <path class="muscle" id="m-forearm-r" d="M83 52 Q86 62, 87 74 Q85 76, 82 74 Q80 64, 78 54 Q80 52, 83 52 Z"/>
+
+                            <!-- Core / Abs - rounded rectangle -->
+                            <path class="muscle" id="m-core" d="M44 42 Q42 44, 42 50 L42 68 Q44 72, 50 72 Q56 72, 58 68 L58 50 Q58 44, 56 42 Q52 40, 50 40 Q48 40, 44 42 Z"/>
+
+                            <!-- Left Oblique - curved side -->
+                            <path class="muscle" id="m-oblique-l" d="M26 36 Q24 46, 26 58 Q28 68, 32 72 Q38 72, 42 68 L42 44 Q38 40, 30 36 Q28 36, 26 36 Z"/>
+
+                            <!-- Right Oblique -->
+                            <path class="muscle" id="m-oblique-r" d="M74 36 Q76 46, 74 58 Q72 68, 68 72 Q62 72, 58 68 L58 44 Q62 40, 70 36 Q72 36, 74 36 Z"/>
+
+                            <!-- Left Hip/Adductor - soft shape -->
+                            <path class="muscle" id="m-hip-l" d="M30 70 Q34 74, 42 74 L44 82 Q38 86, 30 84 Q26 80, 28 74 Q28 72, 30 70 Z"/>
+
+                            <!-- Right Hip -->
+                            <path class="muscle" id="m-hip-r" d="M70 70 Q66 74, 58 74 L56 82 Q62 86, 70 84 Q74 80, 72 74 Q72 72, 70 70 Z"/>
+
+                            <!-- Left Quad - long curved -->
+                            <path class="muscle" id="m-quad-l" d="M28 82 Q32 84, 42 84 Q44 100, 42 118 Q38 126, 32 126 Q26 124, 26 116 Q26 98, 28 82 Z"/>
+
+                            <!-- Right Quad -->
+                            <path class="muscle" id="m-quad-r" d="M72 82 Q68 84, 58 84 Q56 100, 58 118 Q62 126, 68 126 Q74 124, 74 116 Q74 98, 72 82 Z"/>
+
+                            <!-- Left Calf - diamond shape -->
+                            <path class="muscle" id="m-calf-l" d="M30 132 Q34 130, 40 132 Q42 142, 40 154 Q36 160, 34 160 Q30 158, 30 152 Q28 142, 30 132 Z"/>
+
+                            <!-- Right Calf -->
+                            <path class="muscle" id="m-calf-r" d="M70 132 Q66 130, 60 132 Q58 142, 60 154 Q64 160, 66 160 Q70 158, 70 152 Q72 142, 70 132 Z"/>
+
+                            <!-- Back (hidden, for back exercises) -->
+                            <path class="muscle" id="m-back" d="M42 44 Q50 42, 58 44 L58 68 Q50 72, 42 68 Z" style="opacity:0"/>
+
+                            <!-- Lats - subtle side curves -->
+                            <path class="muscle" id="m-lats-l" d="M26 36 Q22 48, 24 62 Q26 64, 28 60 Q28 48, 28 38 Q28 36, 26 36 Z"/>
+                            <path class="muscle" id="m-lats-r" d="M74 36 Q78 48, 76 62 Q74 64, 72 60 Q72 48, 72 38 Q72 36, 74 36 Z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="workout-content">
+                    <h2 class="workout-exercise-name" id="exerciseName">Nekstrekking</h2>
+                    <p class="workout-instruction" id="exerciseInstruction">
+                        Kantel je hoofd langzaam naar rechts, houd vast, en herhaal naar links.
+                    </p>
+                    <p class="workout-cues" id="exerciseCues">
+                        Je zoekt een zachte rek, geen pijn.
+                    </p>
+
+                    <div class="workout-timer">
+                        <div class="timer-display" id="timerSeconds">30</div>
+                        <div class="timer-label">seconds remaining</div>
+                    </div>
+
+                    <!-- Skip time controls -->
+                    <div class="timer-skip-controls">
+                        <button class="skip-btn" onclick="skipTime(-10)">-10s</button>
+                        <button class="skip-btn" onclick="skipTime(10)">+10s</button>
+                    </div>
+
+                    <div class="workout-controls">
+                        <button class="control-btn" id="prevBtn" onclick="prevExercise()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 12H5M12 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+                        <button class="control-btn primary" id="playPauseBtn" onclick="togglePlayPause()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="playIcon">
+                                <polygon points="5 3 19 12 5 21 5 3" fill="white" stroke="none"/>
+                            </svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="pauseIcon" style="display:none">
+                                <rect x="6" y="4" width="4" height="16" fill="white" stroke="none" rx="1"/>
+                                <rect x="14" y="4" width="4" height="16" fill="white" stroke="none" rx="1"/>
+                            </svg>
+                        </button>
+                        <button class="control-btn" id="nextBtn" onclick="nextExercise()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="next-preview" id="nextPreview">
+                    <div>
+                        <div class="next-preview-label">Up next</div>
+                        <div class="next-preview-name" id="nextExerciseName">Schoudercirkels</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Complete Screen -->
+        <div class="screen" id="completeScreen">
+            <div class="complete-screen">
+                <div class="complete-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                </div>
+                <h2 class="complete-title">Well done!</h2>
+                <p class="complete-subtitle">You've completed your session</p>
+                <div class="complete-stats">
+                    <div>
+                        <div class="complete-stat-value" id="statExercises">5</div>
+                        <div class="complete-stat-label">Exercises</div>
+                    </div>
+                    <div>
+                        <div class="complete-stat-value" id="statTime">5:30</div>
+                        <div class="complete-stat-label">Minutes</div>
+                    </div>
+                </div>
+                <button class="complete-btn" onclick="showScreen('home')">Done</button>
+            </div>
+        </div>
+
+        <!-- Search Screen -->
+        <div class="screen" id="searchScreen">
+            <div class="header">
+                <h1>Search</h1>
+            </div>
+
+            <div style="padding: 0 24px 24px 24px;">
+                <!-- Search Input -->
+                <div style="position: relative; margin-bottom: 24px;">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search exercises..."
+                        style="width: 100%; padding: 14px 44px 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-family: inherit; background: var(--bg-card); color: var(--text);"
+                        oninput="performSearch(this.value)"
+                    />
+                    <svg style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; stroke: var(--text-secondary); pointer-events: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                </div>
+
+                <!-- Search Results Counter -->
+                <div id="searchCounter" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; display: none;">
+                    Found <span id="searchCount">0</span> exercises
+                </div>
+
+                <!-- Search Results -->
+                <div id="searchResults"></div>
+
+                <!-- Initial State -->
+                <div id="searchEmpty" style="text-align: center; margin-top: 80px; color: var(--text-secondary);">
+                    <svg style="width: 64px; height: 64px; stroke: var(--border); margin: 0 auto 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <p>Search for exercises by name, area, or goal</p>
+                </div>
+
+                <!-- Start Workout Button -->
+                <div id="searchStartWorkout" style="position: fixed; bottom: 80px; left: 24px; right: 24px; display: none;">
+                    <button onclick="startSearchWorkout()" style="width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); font-family: inherit;">
+                        Start Workout (<span id="selectedCount">0</span>)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Screen -->
+        <div class="screen" id="progressScreen">
+            <div class="header">
+                <h1>Progress</h1>
+            </div>
+            <div style="padding: 24px;">
+                <p style="color: var(--text-secondary); text-align: center; margin-top: 60px;">
+                    Track your sessions, streaks, and improvements over time.
+                </p>
+                <p style="color: var(--text-secondary); text-align: center; margin-top: 16px; font-size: 14px;">
+                    Coming soon...
+                </p>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div class="screen" id="settingsScreen">
+            <div class="header">
+                <h1>Settings</h1>
+            </div>
+            <div style="padding: 24px;">
+                <p style="color: var(--text-secondary); text-align: center; margin-top: 60px;">
+                    Customize your experience, manage notifications, and preferences.
+                </p>
+                <p style="color: var(--text-secondary); text-align: center; margin-top: 16px; font-size: 14px;">
+                    Coming soon...
+                </p>
+            </div>
+        </div>
+
+        <!-- Add Exercise Screen -->
+        <div class="screen" id="addExerciseScreen">
+            <div class="detail-header">
+                <button class="back-btn" onclick="showScreen('home')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                <h1 class="detail-title">Add Exercise</h1>
+            </div>
+            <div style="padding: 24px; padding-bottom: 100px;">
+                <form id="addExerciseForm" onsubmit="saveNewExercise(event)" style="display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Exercise Name -->
+                    <div class="form-group">
+                        <label class="form-label">Exercise Name *</label>
+                        <input type="text" id="newExerciseName" class="form-input" required placeholder="e.g., Shoulder Circles">
+                    </div>
+
+                    <!-- Category -->
+                    <div class="form-group">
+                        <label class="form-label">Category *</label>
+                        <select id="newExerciseCategory" class="form-input" required>
+                            <option value="">Select category...</option>
+                            <option value="Latest">Latest</option>
+                            <option value="Daily Stretches">Daily Stretches</option>
+                            <option value="Rehabilitation">Rehabilitation</option>
+                            <option value="Strength">Strength</option>
+                        </select>
+                    </div>
+
+                    <!-- Body Areas -->
+                    <div class="form-group">
+                        <label class="form-label">Body Area(s) *</label>
+                        <div class="form-checkbox-grid">
+                            <label class="form-checkbox"><input type="checkbox" name="bodyArea" value="shoulder"> Shoulder</label>
+                            <label class="form-checkbox"><input type="checkbox" name="bodyArea" value="neck"> Neck</label>
+                            <label class="form-checkbox"><input type="checkbox" name="bodyArea" value="thoracic"> Upper Back</label>
+                            <label class="form-checkbox"><input type="checkbox" name="bodyArea" value="lowback_core"> Lower Back</label>
+                            <label class="form-checkbox"><input type="checkbox" name="bodyArea" value="hip_glute"> Hip/Glutes</label>
+                            <label class="form-checkbox"><input type="checkbox" name="bodyArea" value="knee"> Knee</label>
+                            <label class="form-checkbox"><input type="checkbox" name="bodyArea" value="ankle_foot"> Ankle/Foot</label>
+                            <label class="form-checkbox"><input type="checkbox" name="bodyArea" value="hand_wrist"> Hand/Wrist</label>
+                            <label class="form-checkbox"><input type="checkbox" name="bodyArea" value="core"> Core</label>
+                            <label class="form-checkbox"><input type="checkbox" name="bodyArea" value="fullbody"> Full Body</label>
+                        </div>
+                    </div>
+
+                    <!-- Equipment -->
+                    <div class="form-group">
+                        <label class="form-label">Equipment</label>
+                        <input type="text" id="newExerciseEquipment" class="form-input" placeholder="e.g., Geen, Band, Dumbbells">
+                    </div>
+
+                    <!-- Steps -->
+                    <div class="form-group">
+                        <label class="form-label">Steps/Instructions *</label>
+                        <textarea id="newExerciseSteps" class="form-textarea" required placeholder="1) Step one... 2) Step two..." rows="4"></textarea>
+                    </div>
+
+                    <!-- Cues/Feel -->
+                    <div class="form-group">
+                        <label class="form-label">Cues & Feel</label>
+                        <textarea id="newExerciseCues" class="form-textarea" placeholder="What should it feel like?" rows="2"></textarea>
+                    </div>
+
+                    <!-- Good For -->
+                    <div class="form-group">
+                        <label class="form-label">Good For</label>
+                        <input type="text" id="newExerciseGoodFor" class="form-input" placeholder="e.g., Shoulder mobility, posture">
+                    </div>
+
+                    <!-- Goals -->
+                    <div class="form-group">
+                        <label class="form-label">Goals</label>
+                        <div class="form-checkbox-grid">
+                            <label class="form-checkbox"><input type="checkbox" name="goal" value="mobility"> Mobility</label>
+                            <label class="form-checkbox"><input type="checkbox" name="goal" value="rehab"> Rehab</label>
+                            <label class="form-checkbox"><input type="checkbox" name="goal" value="strength"> Strength</label>
+                            <label class="form-checkbox"><input type="checkbox" name="goal" value="stability"> Stability</label>
+                            <label class="form-checkbox"><input type="checkbox" name="goal" value="balance"> Balance</label>
+                            <label class="form-checkbox"><input type="checkbox" name="goal" value="relax"> Relax</label>
+                        </div>
+                    </div>
+
+                    <!-- Intensity -->
+                    <div class="form-group">
+                        <label class="form-label">Intensity</label>
+                        <select id="newExerciseIntensity" class="form-input">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="form-submit-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                            <path d="M20 6L9 17l-5-5"/>
+                        </svg>
+                        Save Exercise
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Floating Action Button (Add Exercise) -->
+        <button class="fab" onclick="showScreen('addExercise')" title="Add Exercise">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            <span>Add Exercise</span>
+        </button>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <div class="nav-inner">
+                <a class="nav-item active" onclick="showScreen('home')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                    </svg>
+                    Home
+                </a>
+                <a class="nav-item" onclick="showScreen('search')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    Search
+                </a>
+                <a class="nav-item" onclick="showScreen('progress')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 8v4l3 3"/>
+                        <circle cx="12" cy="12" r="10"/>
+                    </svg>
+                    Progress
+                </a>
+                <a class="nav-item" onclick="showScreen('settings')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                    </svg>
+                    Settings
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        // Muscle mapping helper - maps keywords to SVG muscle IDs
+        function mapMuscles(goodFor) {
+            const muscles = [];
+            const text = goodFor.toLowerCase();
+
+            // Neck
+            if (text.includes('nek') || text.includes('neck')) muscles.push('m-neck');
+            // Trapezius
+            if (text.includes('trap') || text.includes('upper back') || text.includes('bovenrug')) muscles.push('m-traps');
+            // Shoulders
+            if (text.includes('schouder') || text.includes('shoulder') || text.includes('deltoid')) {
+                muscles.push('m-shoulder-l', 'm-shoulder-r');
+            }
+            // Chest
+            if (text.includes('borst') || text.includes('chest') || text.includes('pec')) {
+                muscles.push('m-chest-l', 'm-chest-r');
+            }
+            // Biceps / Arms
+            if (text.includes('bicep') || text.includes('arm') || text.includes('upper arm')) {
+                muscles.push('m-bicep-l', 'm-bicep-r');
+            }
+            // Forearms / Wrists
+            if (text.includes('onderarm') || text.includes('forearm') || text.includes('pols') || text.includes('wrist') || text.includes('grip')) {
+                muscles.push('m-forearm-l', 'm-forearm-r');
+            }
+            // Core / Abs
+            if (text.includes('core') || text.includes('buik') || text.includes('abs') || text.includes('abdominal') || text.includes('romp')) {
+                muscles.push('m-core');
+            }
+            // Obliques
+            if (text.includes('oblique') || text.includes('zijkant') || text.includes('lateral')) {
+                muscles.push('m-oblique-l', 'm-oblique-r');
+            }
+            // Back
+            if (text.includes('rug') || text.includes('back') || text.includes('spine') || text.includes('erector')) {
+                muscles.push('m-back');
+            }
+            // Lats
+            if (text.includes('lat') || text.includes('latissimus')) {
+                muscles.push('m-lats-l', 'm-lats-r');
+            }
+            // Hips / Glutes
+            if (text.includes('heup') || text.includes('hip') || text.includes('bil') || text.includes('glute') || text.includes('lies')) {
+                muscles.push('m-hip-l', 'm-hip-r');
+            }
+            // Quads / Thighs
+            if (text.includes('quad') || text.includes('bovenbeen') || text.includes('dij') || text.includes('thigh') || text.includes('knie') || text.includes('knee')) {
+                muscles.push('m-quad-l', 'm-quad-r');
+            }
+            // Hamstrings (map to quads since we show front view)
+            if (text.includes('hamstring') || text.includes('achterbovenbeen')) {
+                muscles.push('m-quad-l', 'm-quad-r');
+            }
+            // Calves
+            if (text.includes('kuit') || text.includes('calf') || text.includes('calves') || text.includes('achilles') || text.includes('enkel') || text.includes('ankle')) {
+                muscles.push('m-calf-l', 'm-calf-r');
+            }
+
+            // Remove duplicates
+            return [...new Set(muscles)];
+        }
+
+        // Full exercise database
+        const exerciseDatabase = [
+            {
+                id: "tai-chi",
+                name: "Tai Chi (Yang-style)",
+                category: "latest",
+                equipment: "Geen",
+                steps: "1) Sta ontspannen, knieën zacht. 2) Beweeg langzaam en vloeiend door een korte reeks. 3) Houd je adem rustig; schouders laag; gewicht verplaatst geleidelijk.",
+                cues: "Je zoekt 'stabiel en zacht': lichte spanning in benen/billen, rustige adem, geen scherpe pijn.",
+                goodFor: "Balans, coördinatie, mobiliteit + rustige conditie",
+                duration: 120,
+                muscles: ["m-quad-l", "m-quad-r", "m-hip-l", "m-hip-r", "m-calf-l", "m-calf-r"]
+            },
+            {
+                id: "box-breathing",
+                name: "Box Breathing (4-4-4-4)",
+                category: "latest",
+                equipment: "Geen",
+                steps: "1) Adem uit. 2) Adem 4 tellen in door neus. 3) Houd 4. 4) Adem 4 uit. 5) Houd 4. 6) Herhaal 3–4 rondes.",
+                cues: "Rustiger ritme, 'ruimte' in borst/buik. Niet forceren; geen hyperventilatie-gevoel.",
+                goodFor: "Stressregulatie, focus als 'reset'",
+                duration: 60,
+                muscles: ["m-core", "m-chest-l", "m-chest-r"]
+            },
+            {
+                id: "bear-crawl",
+                name: "Bear Crawl",
+                category: "latest",
+                equipment: "Vloer (optioneel mat)",
+                steps: "1) Start op handen/knieën. 2) Til knieën 1–2 cm van de vloer. 3) Crawl voorwaarts: linkerhand + rechtervoet, dan wissel. 4) Rug vlak, heupen laag.",
+                cues: "Core 'aan', schouders werken, heupen blijven stil; hijg is oké, rugpijn niet.",
+                goodFor: "Core-stability, schouderstabiliteit, coördinatie",
+                duration: 45,
+                muscles: ["m-core", "m-shoulder-l", "m-shoulder-r", "m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "nordic-curl",
+                name: "Nordic Hamstring Curl",
+                category: "latest",
+                equipment: "Iemand die enkels vasthoudt of enkelhaak",
+                steps: "1) Kniel rechtop, heupen gestrekt. 2) Houd romp in 1 lijn. 3) Laat jezelf langzaam voorover 'vallen' (hamstrings remmen). 4) Vang op met handen.",
+                cues: "Sterke, gecontroleerde spanning achterbovenbeen; geen stekende knie/hamstring-pijn.",
+                goodFor: "Hamstringkracht (eccentrisch), blessurepreventie",
+                duration: 45,
+                muscles: ["m-quad-l", "m-quad-r", "m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "copenhagen-plank",
+                name: "Copenhagen Side Plank",
+                category: "latest",
+                equipment: "Bank/stoel",
+                steps: "1) Zijplank: onderarm op vloer. 2) Bovenbeen op bank (knie of enkel). 3) Til heupen op; houd romp recht. 4) Houd 10–30 sec, wissel.",
+                cues: "Binnenkant bovenbeen + core. Het is zwaar; pijn in lies = stop.",
+                goodFor: "Adductor- en core-isometrie",
+                duration: 30,
+                muscles: ["m-core", "m-oblique-l", "m-oblique-r", "m-hip-l", "m-hip-r", "m-quad-l", "m-quad-r"]
+            },
+            {
+                id: "dead-hang",
+                name: "Dead Hang",
+                category: "latest",
+                equipment: "Pull-up bar/stevige balk",
+                steps: "1) Pak stang vast, voeten vrij of deels steun. 2) Laat schouders 'lang' worden (niet in oren). 3) Hang 10–30 sec, 2–4 sets.",
+                cues: "Rek in lats/borst/onderarmen; decompressie-gevoel. Geen schouderpinch.",
+                goodFor: "Schoudermobiliteit, grip, 'posture reset'",
+                duration: 30,
+                muscles: ["m-shoulder-l", "m-shoulder-r", "m-lats-l", "m-lats-r", "m-forearm-l", "m-forearm-r"]
+            },
+            {
+                id: "glute-bridge-iso",
+                name: "Glute Bridge Iso Hold",
+                category: "latest",
+                equipment: "Vloer (optioneel mat)",
+                steps: "1) Rug op vloer, knieën gebogen, voeten heupbreed. 2) Span billen, til heupen tot romp in lijn. 3) Houd 30–60 sec, rustig ademen.",
+                cues: "Brand in bilspieren/hamstrings; lage rug hoort niet te 'pakken'.",
+                goodFor: "Glute-activatie, heupstabiliteit, lage-rug basis",
+                duration: 45,
+                muscles: ["m-hip-l", "m-hip-r", "m-quad-l", "m-quad-r", "m-core"]
+            },
+            {
+                id: "90-90-hip-switch",
+                name: "90/90 Hip Switch",
+                category: "latest",
+                equipment: "Vloer",
+                steps: "1) Zit met beide knieën 90° (voorbeen extern, achterbeen intern). 2) Romp hoog. 3) Wissel gecontroleerd naar andere kant. 4) 6–10 herhalingen.",
+                cues: "Diepe rek/druk rond heupen en bil; knieën oké; geen scherpe liespijn.",
+                goodFor: "Heup-rotatiemobiliteit, lichaamsbewustzijn",
+                duration: 45,
+                muscles: ["m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "band-pull-apart",
+                name: "Scapular Retraction (Band Pull-Apart)",
+                category: "latest",
+                equipment: "Weerstandsband",
+                steps: "1) Band vasthouden op borsthoogte. 2) Trek handen uit elkaar tot schouderbladen naar elkaar bewegen. 3) Rustig terug. 2–3×10–15.",
+                cues: "Tussen schouderbladen werkt; nek blijft relaxed.",
+                goodFor: "Schouderbladcontrole, desk posture tegenhanger",
+                duration: 45,
+                muscles: ["m-shoulder-l", "m-shoulder-r", "m-traps", "m-back"]
+            },
+            {
+                id: "qigong",
+                name: "Qigong (basale flow)",
+                category: "latest",
+                equipment: "Geen",
+                steps: "1) Sta ontspannen. 2) Beweeg langzaam door eenvoudige patronen (armen openen/sluiten). 3) Adem rustig mee; focus op houding.",
+                cues: "Meer 'kalme energie' dan spierpomp: zacht warm worden, ontspanning.",
+                goodFor: "Rustig bewegen, coördinatie, stressreductie",
+                duration: 120,
+                muscles: ["m-shoulder-l", "m-shoulder-r", "m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "wall-sit",
+                name: "Wall Sit (Isometric)",
+                category: "latest",
+                equipment: "Muur",
+                steps: "1) Rug tegen muur. 2) Voeten ±60 cm naar voren. 3) Zak tot knieën ~90°. 4) Houd 15–60 sec, 3–5 sets.",
+                cues: "Quadriceps 'in brand', core licht aangespannen; knieën stabiel.",
+                goodFor: "Quadriceps-uithouding, knie-tolerantie opbouwen",
+                duration: 45,
+                muscles: ["m-quad-l", "m-quad-r", "m-core"]
+            },
+            {
+                id: "pilates-hundred",
+                name: "Pilates 'Hundred'",
+                category: "latest",
+                equipment: "Mat",
+                steps: "1) Ruglig, knieën in tabletop. 2) Hoofd/schouders licht omhoog. 3) Armen naast lichaam, kleine 'pumps'. 4) 10 ademcycli.",
+                cues: "Diepe buikspieren werken; nek blijft lang; onderrug 'geankerd'.",
+                goodFor: "Core-uithouding en adem-coördinatie",
+                duration: 60,
+                muscles: ["m-core", "m-oblique-l", "m-oblique-r"]
+            },
+            // Daily Stretches
+            {
+                id: "calf-stretch",
+                name: "Standing Calf Stretch",
+                category: "daily",
+                equipment: "Muur",
+                steps: "1) Handen tegen muur. 2) Eén been achter: hiel op vloer, knie gestrekt. 3) Leun naar voren tot rek in kuit. 30–60 sec; wissel.",
+                cues: "Rek in kuit/achilles; geen scherpe pijn in hiel.",
+                goodFor: "Kuit/achilles soepelheid, lopen/hardlopen",
+                duration: 45,
+                muscles: ["m-calf-l", "m-calf-r"]
+            },
+            {
+                id: "quad-stretch",
+                name: "Standing Quadriceps Stretch",
+                category: "daily",
+                equipment: "Muur/stoel",
+                steps: "1) Houd steun. 2) Pak enkel, breng hiel richting bil. 3) Knieën bij elkaar, heupen 'onder' je. 30–60 sec; wissel.",
+                cues: "Rek voorkant bovenbeen; geen kniepijn.",
+                goodFor: "Quadriceps/voorzijde heup, bij lang zitten",
+                duration: 45,
+                muscles: ["m-quad-l", "m-quad-r", "m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "hamstring-stretch",
+                name: "Supine Hamstring Stretch",
+                category: "daily",
+                equipment: "Handdoek/band optioneel",
+                steps: "1) Ruglig, één been omhoog. 2) Houd achter dij/kuit (niet knieholte). 3) Strek knie richting comfortabel. 30–60 sec; wissel.",
+                cues: "Rek achterkant dij; geen zenuw-tinteling.",
+                goodFor: "Hamstrings; relevant voor rug-/heupgevoel",
+                duration: 45,
+                muscles: ["m-quad-l", "m-quad-r"]
+            },
+            {
+                id: "hip-flexor-stretch",
+                name: "Hip Flexor Stretch (Half-Kneeling)",
+                category: "daily",
+                equipment: "Vloer (mat)",
+                steps: "1) Kniel, één voet voor. 2) Span bil van achterste been en kantel bekken licht 'achterover'. 3) Duw heup zacht naar voren. 30–60 sec; wissel.",
+                cues: "Rek voorzijde heup/lies; lage rug blijft neutraal.",
+                goodFor: "Heupflexoren; minder trek in onderrug",
+                duration: 45,
+                muscles: ["m-hip-l", "m-hip-r", "m-quad-l", "m-quad-r"]
+            },
+            {
+                id: "figure-4-stretch",
+                name: "Figure-4 Glute Stretch",
+                category: "daily",
+                equipment: "Vloer",
+                steps: "1) Ruglig, kruis enkel over andere knie. 2) Trek dij naar je toe. 3) 30–60 sec; wissel.",
+                cues: "Rek/druk in bil; geen kniepijn.",
+                goodFor: "Billen/achterheup; prettig bij stijf zitten",
+                duration: 45,
+                muscles: ["m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "childs-pose",
+                name: "Child's Pose",
+                category: "daily",
+                equipment: "Vloer",
+                steps: "1) Kniel, billen richting hielen. 2) Armen lang voor je, voorhoofd naar vloer. 3) 30–60 sec rustig ademen.",
+                cues: "Rek in rug/lats; knieën moeten oké voelen.",
+                goodFor: "Rug/borstkas ontspanning, schouder-opening",
+                duration: 45,
+                muscles: ["m-back", "m-lats-l", "m-lats-r", "m-shoulder-l", "m-shoulder-r"]
+            },
+            {
+                id: "cat-cow",
+                name: "Cat-Cow",
+                category: "daily",
+                equipment: "Vloer",
+                steps: "1) Vierpoot. 2) Bol rug (kin iets in). 3) Hol rug (borst vooruit), rustig wisselen 8–12 reps.",
+                cues: "Zachte mobiliteit door wervelkolom; geen 'knik' pijn.",
+                goodFor: "Rugmobiliteit, reset na zitten",
+                duration: 45,
+                muscles: ["m-back", "m-core"]
+            },
+            {
+                id: "thoracic-rotation",
+                name: "Thoracic Rotation (Open Book)",
+                category: "daily",
+                equipment: "Vloer",
+                steps: "1) Zijlig, knieën gebogen. 2) Armen gestrekt voor je. 3) Bovenste arm opent naar andere kant, volg met blik. 6–10 reps per kant.",
+                cues: "Rek in borst/borstkas; onderrug blijft relatief stil.",
+                goodFor: "Borstwervelkolom rotatie, stijve bovenrug",
+                duration: 45,
+                muscles: ["m-back", "m-chest-l", "m-chest-r"]
+            },
+            {
+                id: "doorway-pec-stretch",
+                name: "Doorway Pec Stretch",
+                category: "daily",
+                equipment: "Deurpost",
+                steps: "1) Onderarm tegen deurpost, elleboog ±90°. 2) Stap met zelfde been naar voren en draai romp weg. 30–45 sec; wissel.",
+                cues: "Rek borstspier; geen 'pinch' in schouder.",
+                goodFor: "Borst/voorzijde schouder, tegenhanger van rond zitten",
+                duration: 40,
+                muscles: ["m-chest-l", "m-chest-r", "m-shoulder-l", "m-shoulder-r"]
+            },
+            {
+                id: "neck-side-bend",
+                name: "Neck Side Bend Stretch",
+                category: "daily",
+                equipment: "Stoel",
+                steps: "1) Zit recht. 2) Laat oor naar schouder zakken (niet optrekken). 3) Eventueel lichte handdruk. 20–30 sec per kant.",
+                cues: "Rek zijkant nek/schouder; geen tinteling in arm.",
+                goodFor: "Nekspanning door beeldscherm/telefonie",
+                duration: 30,
+                muscles: ["m-neck", "m-traps"]
+            },
+            {
+                id: "sideways-bend",
+                name: "Sideways Bend (Lower Back)",
+                category: "daily",
+                equipment: "Geen",
+                steps: "1) Sta recht, voeten heupbreed. 2) Glijd hand langs dij naar beneden. 3) 2 sec vasthouden, 3 reps per kant.",
+                cues: "Rek zijkant romp/heup; geen scherpe rugpijn.",
+                goodFor: "Lage-rug flexibiliteit (mild)",
+                duration: 30,
+                muscles: ["m-oblique-l", "m-oblique-r", "m-back"]
+            },
+            {
+                id: "wrist-flexor-stretch",
+                name: "Wrist Flexor Stretch",
+                category: "daily",
+                equipment: "Tafel/hand",
+                steps: "1) Arm gestrekt, palm omhoog. 2) Buig pols omlaag met andere hand tot rek. 3) 20–30 sec per kant.",
+                cues: "Rek onderarm/pols; geen tinteling in vingers.",
+                goodFor: "Polsstijfheid, toetsenbord/muis-belasting",
+                duration: 30,
+                muscles: ["m-forearm-l", "m-forearm-r"]
+            },
+            {
+                id: "wrist-extensor-stretch",
+                name: "Wrist Extensor Stretch",
+                category: "daily",
+                equipment: "Tafel/hand",
+                steps: "1) Arm gestrekt, palm omlaag. 2) Buig pols omlaag met andere hand tot rek. 3) 20–30 sec.",
+                cues: "Rek bovenkant onderarm; niet prikkelend.",
+                goodFor: "Tenniselleboog-achtige stijfheid, muiswerk",
+                duration: 30,
+                muscles: ["m-forearm-l", "m-forearm-r"]
+            },
+            {
+                id: "ankle-dorsiflexion",
+                name: "Ankle Dorsiflexion Stretch",
+                category: "daily",
+                equipment: "Handdoek",
+                steps: "1) Zit met been gestrekt. 2) Handdoek om bal van voet. 3) Trek voet rustig naar je toe. 30 sec; wissel.",
+                cues: "Rek kuit/achilles; geen scherpe hielpijn.",
+                goodFor: "Enkelmobiliteit, limiterend bij squat/treppen",
+                duration: 30,
+                muscles: ["m-calf-l", "m-calf-r"]
+            },
+            {
+                id: "adductor-stretch",
+                name: "Adductor Stretch (Side Lunge)",
+                category: "daily",
+                equipment: "Geen",
+                steps: "1) Sta breed. 2) Zak naar één kant (heup naar achter), andere been gestrekt. 3) Houd 20–40 sec, wissel.",
+                cues: "Rek binnenkant dij; knieën volgen tenen.",
+                goodFor: "Adductoren/lies soepelheid",
+                duration: 40,
+                muscles: ["m-hip-l", "m-hip-r", "m-quad-l", "m-quad-r"]
+            },
+            {
+                id: "cross-body-shoulder",
+                name: "Cross-Body Shoulder Stretch",
+                category: "daily",
+                equipment: "Geen",
+                steps: "1) Breng arm horizontaal voor borst. 2) Trek met andere arm zacht naar je toe. 20–30 sec; wissel.",
+                cues: "Rek achterzijde schouder; geen pijn voorin.",
+                goodFor: "Achterste schouder soepelheid",
+                duration: 30,
+                muscles: ["m-shoulder-l", "m-shoulder-r"]
+            },
+            // Rehabilitation
+            {
+                id: "pelvic-tilt",
+                name: "Pelvic Tilt",
+                category: "rehab",
+                equipment: "Vloer/bed",
+                steps: "1) Ruglig, knieën gebogen. 2) Kantel bekken zodat onderrug zacht richting vloer gaat. 3) Houd 2 sec, laat los. 10–15 reps.",
+                cues: "Lichte spanning onderbuik/bil; geen pijnscheut in rug.",
+                goodFor: "Lage-rug controle, neutral spine leren",
+                duration: 45,
+                muscles: ["m-core", "m-hip-l", "m-hip-r", "m-back"]
+            },
+            {
+                id: "bridge-rehab",
+                name: "Bridge (Spine/Hip)",
+                category: "rehab",
+                equipment: "Vloer",
+                steps: "1) Ruglig, knieën gebogen. 2) Span buik/billen, til heupen tot rechte lijn. 3) Houd 5–15 sec, terug. 5–10 reps.",
+                cues: "Bilspieren werken; nek/onderrug ontspannen.",
+                goodFor: "Core + heupstabiliteit, lage-rug ondersteuning",
+                duration: 45,
+                muscles: ["m-hip-l", "m-hip-r", "m-core", "m-back"]
+            },
+            {
+                id: "bird-dog",
+                name: "Bird Dog",
+                category: "rehab",
+                equipment: "Vloer",
+                steps: "1) Vierpoot. 2) Strek één arm en tegenovergesteld been. 3) Houd 5 sec, wissel. 6–10 per kant.",
+                cues: "Core stabiliteit, rug blijft stil; heupen niet draaien.",
+                goodFor: "Rompstabiliteit (anti-rotatie), rugrevalidatie",
+                duration: 45,
+                muscles: ["m-core", "m-back", "m-hip-l", "m-hip-r", "m-shoulder-l", "m-shoulder-r"]
+            },
+            {
+                id: "clamshell",
+                name: "Clamshell",
+                category: "rehab",
+                equipment: "Vloer (optioneel miniband)",
+                steps: "1) Zijlig, heupen/knieën gebogen. 2) Hielen bij elkaar, open bovenste knie zonder bekken te draaien. 3) 2–3×10–15.",
+                cues: "Brand in zijkant bil (glute med). Niet in onderrug.",
+                goodFor: "Heupstabiliteit, knieën tracken",
+                duration: 45,
+                muscles: ["m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "hip-abduction",
+                name: "Side-Lying Hip Abduction",
+                category: "rehab",
+                equipment: "Vloer",
+                steps: "1) Zijlig, onderste been gebogen, bovenste been gestrekt. 2) Til bovenste been tot ±45°. 3) 2–3×10–15.",
+                cues: "Zijkant bil/heup. Niet in voorzijde heup.",
+                goodFor: "Glute med kracht, heup-/knie-stabiliteit",
+                duration: 45,
+                muscles: ["m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "scapular-squeeze",
+                name: "Scapular Squeeze",
+                category: "rehab",
+                equipment: "Geen/band optioneel",
+                steps: "1) Zit/sta recht. 2) Trek schouderbladen zacht naar achter en omlaag. 3) Houd 3–5 sec, 10–15 reps.",
+                cues: "Werken tussen schouderbladen, nek blijft lang.",
+                goodFor: "Schouderbladcontrole, basis bij nek/schouderklachten",
+                duration: 45,
+                muscles: ["m-traps", "m-back", "m-shoulder-l", "m-shoulder-r"]
+            },
+            {
+                id: "shoulder-external-rotation",
+                name: "Shoulder External Rotation (Band)",
+                category: "rehab",
+                equipment: "Weerstandsband + deurknop",
+                steps: "1) Band aan stabiel punt. 2) Elleboog 90° tegen ribben. 3) Draai onderarm naar buiten tegen weerstand. 3×8–12.",
+                cues: "Achterzijde schouder (rotator cuff). Geen pinch voorin.",
+                goodFor: "Rotator cuff stabiliteit, schouderrevalidatie",
+                duration: 45,
+                muscles: ["m-shoulder-l", "m-shoulder-r"]
+            },
+            {
+                id: "heel-slides",
+                name: "Heel Slides (Knee ROM)",
+                category: "rehab",
+                equipment: "Vloer/bed",
+                steps: "1) Ruglig, been gestrekt. 2) Schuif hiel richting billen tot comfortabele buiging. 3) Schuif terug. 10–20 reps.",
+                cues: "Rek/druk rond knie; geen scherpe pijn.",
+                goodFor: "Knie bewegingsuitslag na stijfheid",
+                duration: 45,
+                muscles: ["m-quad-l", "m-quad-r"]
+            },
+            {
+                id: "quad-set",
+                name: "Quad Set (Isometric)",
+                category: "rehab",
+                equipment: "Vloer/bed",
+                steps: "1) Been gestrekt. 2) Span bovenbeen aan door knie 'plat' te duwen. 3) Houd 5–10 sec. 10–20 reps.",
+                cues: "Spanning bovenop bovenbeen; knie beweegt nauwelijks.",
+                goodFor: "Quadriceps activatie, knie stabiliteit",
+                duration: 45,
+                muscles: ["m-quad-l", "m-quad-r"]
+            },
+            {
+                id: "straight-leg-raise",
+                name: "Straight Leg Raise",
+                category: "rehab",
+                equipment: "Vloer/bed",
+                steps: "1) Ruglig, één knie gebogen, andere been gestrekt. 2) Span quad. 3) Til gestrekte been 20–30 cm, houd 5 sec. 3×10.",
+                cues: "Quadriceps + heupflexor. Onderrug blijft rustig.",
+                goodFor: "Quadricepskracht zonder diepe knieflexie",
+                duration: 45,
+                muscles: ["m-quad-l", "m-quad-r", "m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "wall-angel",
+                name: "Wall Slide / Wall Angel",
+                category: "rehab",
+                equipment: "Muur",
+                steps: "1) Rug tegen muur, ribben 'laag'. 2) Armen tegen muur (W). 3) Schuif langzaam omhoog en omlaag. 8–12 reps.",
+                cues: "Bovenrug/achter schouder werken; voorkant schouder rustig.",
+                goodFor: "Schoudermobiliteit + scapula controle",
+                duration: 45,
+                muscles: ["m-shoulder-l", "m-shoulder-r", "m-traps", "m-back"]
+            },
+            {
+                id: "ankle-alphabet",
+                name: "Ankle Alphabet",
+                category: "rehab",
+                equipment: "Stoel",
+                steps: "1) Zit, voet van vloer. 2) 'Schrijf' het alfabet met je tenen (A–Z). 1–2 rondes.",
+                cues: "Zachte beweging in alle richtingen; mag vermoeien, niet steken.",
+                goodFor: "Enkel range-of-motion na verzwikking",
+                duration: 60,
+                muscles: ["m-calf-l", "m-calf-r"]
+            },
+            {
+                id: "golf-ball-roll",
+                name: "Golf Ball Roll (Plantar Fascia)",
+                category: "rehab",
+                equipment: "Golfbal/tennisbal",
+                steps: "1) Zit/sta. 2) Rol bal onder voetholte 1–2 min. 3) Druk is 'comfortabel pijnlijk', niet scherp.",
+                cues: "Druk/ontspanning voetzool; geen scherpe hielpijn.",
+                goodFor: "Voetzoolspanning, voetmobiliteit",
+                duration: 60,
+                muscles: ["m-calf-l", "m-calf-r"]
+            },
+            {
+                id: "calf-raises-rehab",
+                name: "Calf Raises (Rehab)",
+                category: "rehab",
+                equipment: "Stoel voor steun",
+                steps: "1) Sta, hand op stoel. 2) Kom op tenen, langzaam terug. 2×10 (opbouwen).",
+                cues: "Kuit werkt; enkel blijft recht.",
+                goodFor: "Enkel/kuit kracht na verzwikking",
+                duration: 45,
+                muscles: ["m-calf-l", "m-calf-r"]
+            },
+            {
+                id: "knee-to-chest",
+                name: "Knee to Chest Stretch",
+                category: "rehab",
+                equipment: "Vloer/bed",
+                steps: "1) Ruglig. 2) Trek één knie rustig naar borst. 3) Houd 5–20 sec; wissel.",
+                cues: "Rek bil/onderrug; geen uitstralende tinteling.",
+                goodFor: "Lage-rug ontspanning en mobiliteit",
+                duration: 40,
+                muscles: ["m-back", "m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "sit-to-stand-rehab",
+                name: "Sit-to-Stand (Rehab)",
+                category: "rehab",
+                equipment: "Stoel",
+                steps: "1) Sta op uit stoel met voeten onder je. 2) Gebruik handen zo nodig. 3) Rustig zitten. 10 reps.",
+                cues: "Benen werken, controle in knieën/heupen.",
+                goodFor: "Algemene functionele revalidatie",
+                duration: 45,
+                muscles: ["m-quad-l", "m-quad-r", "m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "finger-tendon-glides",
+                name: "Finger Tendon Glides",
+                category: "rehab",
+                equipment: "Geen",
+                steps: "1) Hand recht. 2) Maak 'hook fist'. 3) Maak 'full fist'. 4) Maak 'straight fist'. 5) Terug. 5–10 reps.",
+                cues: "Zachte rek in vingers; geen scherpe pijn.",
+                goodFor: "Vinger/hand mobiliteit bij stijfheid",
+                duration: 45,
+                muscles: ["m-forearm-l", "m-forearm-r"]
+            },
+            {
+                id: "ankle-circles",
+                name: "Ankle Circles",
+                category: "rehab",
+                equipment: "Stoel",
+                steps: "1) Zit, voet van vloer. 2) Maak langzame cirkels: 10x linksom, 10x rechtsom. 1–2 sets.",
+                cues: "Zachte beweging, geen scherpe pijn.",
+                goodFor: "Enkelmobiliteit bij stijfheid",
+                duration: 45,
+                muscles: ["m-calf-l", "m-calf-r"]
+            },
+            // Strength
+            {
+                id: "sit-to-stand",
+                name: "Sit-to-Stand (Chair Squat)",
+                category: "strength",
+                equipment: "Stevige stoel",
+                steps: "1) Zit vooraan stoel, voeten onder knieën. 2) Sta op zonder handen. 3) Ga gecontroleerd terug. 2–3×8–12.",
+                cues: "Benen/billen werken; knieën richting tenen.",
+                goodFor: "Basisbeen-kracht, dagelijks functioneren",
+                duration: 45,
+                muscles: ["m-quad-l", "m-quad-r", "m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "bodyweight-squat",
+                name: "Bodyweight Squat",
+                category: "strength",
+                equipment: "Geen (optioneel gewicht)",
+                steps: "1) Voeten heup/schouderbreed. 2) Heupen naar achter, knieën buigen. 3) Romp stevig, kom omhoog. 2–4×6–12.",
+                cues: "Bovenbenen/billen; voetdruk verdeeld.",
+                goodFor: "Been- en heupkracht, mobiliteit onder belasting",
+                duration: 45,
+                muscles: ["m-quad-l", "m-quad-r", "m-hip-l", "m-hip-r", "m-core"]
+            },
+            {
+                id: "lunge",
+                name: "Lunge (Split Squat)",
+                category: "strength",
+                equipment: "Geen",
+                steps: "1) Stap in split-stance. 2) Zak recht naar beneden tot beide knieën ±90°. 3) Duw omhoog. 2–3×8 per kant.",
+                cues: "Voorste been bil/quad; romp recht.",
+                goodFor: "Unilaterale beenkracht, balans, heupstabiliteit",
+                duration: 45,
+                muscles: ["m-quad-l", "m-quad-r", "m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "push-up",
+                name: "Push-Up",
+                category: "strength",
+                equipment: "Vloer/muur/tafel",
+                steps: "1) Handen onder schouders. 2) Romp plank-stijf. 3) Zak gecontroleerd, duw op. 2–4×6–15.",
+                cues: "Borst, triceps, core; schouders niet in oren.",
+                goodFor: "Bovenlichaam duwkracht, core",
+                duration: 45,
+                muscles: ["m-chest-l", "m-chest-r", "m-shoulder-l", "m-shoulder-r", "m-bicep-l", "m-bicep-r", "m-core"]
+            },
+            {
+                id: "band-row",
+                name: "Row (Band Row)",
+                category: "strength",
+                equipment: "Weerstandsband",
+                steps: "1) Band om stevig punt. 2) Trek ellebogen langs lichaam naar achter. 3) Knijp schouderbladen, langzaam terug. 2–4×8–15.",
+                cues: "Rugspieren tussen schouderbladen; nek relaxed.",
+                goodFor: "Trek-kracht, schouderbalans",
+                duration: 45,
+                muscles: ["m-back", "m-lats-l", "m-lats-r", "m-bicep-l", "m-bicep-r"]
+            },
+            {
+                id: "hip-hinge",
+                name: "Hip Hinge (RDL Pattern)",
+                category: "strength",
+                equipment: "Geen/gewicht",
+                steps: "1) Voeten heupbreed. 2) 'Scharnier' vanuit heup: billen naar achter, rug neutraal. 3) Voel hamstrings, kom terug. 2–4×6–12.",
+                cues: "Hamstrings/billen op rek onder spanning; rug 'lang'.",
+                goodFor: "Posterior chain, tillen-vaardigheid",
+                duration: 45,
+                muscles: ["m-hip-l", "m-hip-r", "m-quad-l", "m-quad-r", "m-back"]
+            },
+            {
+                id: "plank",
+                name: "Plank",
+                category: "strength",
+                equipment: "Vloer",
+                steps: "1) Ellebogen onder schouders. 2) Romp in rechte lijn, billen licht aangespannen. 3) Houd 20–60 sec, 2–4 sets.",
+                cues: "Core overal, vooral onderbuik; lage rug niet doorhangen.",
+                goodFor: "Core-uithouding, transfer naar veel bewegingen",
+                duration: 45,
+                muscles: ["m-core", "m-shoulder-l", "m-shoulder-r"]
+            },
+            {
+                id: "side-plank",
+                name: "Side Plank",
+                category: "strength",
+                equipment: "Vloer",
+                steps: "1) Op zij, onderarm onder schouder. 2) Heupen omhoog, romp recht. 3) Houd 15–45 sec per kant, 2–3 sets.",
+                cues: "Zijkant core + heup (glute med).",
+                goodFor: "Laterale core, heupstabiliteit",
+                duration: 45,
+                muscles: ["m-core", "m-oblique-l", "m-oblique-r", "m-hip-l", "m-hip-r"]
+            },
+            {
+                id: "calf-raises",
+                name: "Calf Raises",
+                category: "strength",
+                equipment: "Traprand optioneel",
+                steps: "1) Sta recht. 2) Kom langzaam op tenen, langzaam terug. 2–3×12–20.",
+                cues: "Kuit brand; enkel stabiel.",
+                goodFor: "Kuitkracht, enkelstabiliteit",
+                duration: 45,
+                muscles: ["m-calf-l", "m-calf-r"]
+            },
+            {
+                id: "farmer-carry",
+                name: "Farmer Carry",
+                category: "strength",
+                equipment: "2 gewichten / boodschappentassen",
+                steps: "1) Pak gewichten, schouders laag. 2) Loop rustig 20–60 sec. 3) Core strak. 3–5 rondes.",
+                cues: "Grip, core, bovenrug. Je voelt jezelf 'lang' worden.",
+                goodFor: "Functionele totale kracht, houding, grip",
+                duration: 45,
+                muscles: ["m-core", "m-traps", "m-forearm-l", "m-forearm-r"]
+            },
+            {
+                id: "overhead-press",
+                name: "Overhead Press (Band)",
+                category: "strength",
+                equipment: "Weerstandsband",
+                steps: "1) Band onder voeten, handen op schouderhoogte. 2) Druk boven hoofd, ribben laag. 3) Rustig terug. 2–4×8–12.",
+                cues: "Schouders/triceps; core stabiliseert.",
+                goodFor: "Schouderkracht en overhead-capaciteit",
+                duration: 45,
+                muscles: ["m-shoulder-l", "m-shoulder-r", "m-bicep-l", "m-bicep-r", "m-core"]
+            },
+            {
+                id: "single-leg-rdl",
+                name: "Single-Leg RDL",
+                category: "strength",
+                equipment: "Geen/gewicht",
+                steps: "1) Sta op één been. 2) Hinge: romp voorover, ander been achter. 3) Heupen vlak, rug neutraal. 2–3×6–10 per kant.",
+                cues: "Hamstring/bil standbeen; balans-uitdaging.",
+                goodFor: "Posterior chain + enkel/heupstabiliteit",
+                duration: 45,
+                muscles: ["m-hip-l", "m-hip-r", "m-quad-l", "m-quad-r"]
+            },
+            {
+                id: "glute-bridge-reps",
+                name: "Glute Bridge (Reps)",
+                category: "strength",
+                equipment: "Vloer",
+                steps: "1) Ruglig, knieën gebogen. 2) Til heupen op, knijp billen. 3) 2–4×10–15.",
+                cues: "Bilspieren; onderrug neutraal.",
+                goodFor: "Heup-extensie kracht, basis voor lopen/rennen",
+                duration: 45,
+                muscles: ["m-hip-l", "m-hip-r", "m-core"]
+            },
+            {
+                id: "step-up",
+                name: "Step-Up",
+                category: "strength",
+                equipment: "Trap/step",
+                steps: "1) Zet hele voet op step. 2) Duw omhoog via voorste been. 3) Controleer terug. 2–3×8 per kant.",
+                cues: "Quad/bil; knie volgt tenen, heup stabiel.",
+                goodFor: "Functionele beentraining (traplopen)",
+                duration: 45,
+                muscles: ["m-quad-l", "m-quad-r", "m-hip-l", "m-hip-r", "m-calf-l", "m-calf-r"]
+            }
+        ];
+
+        // Build categories object from database
+        const categories = {
+            latest: {
+                name: "Latest",
+                exercises: exerciseDatabase.filter(e => e.category === "latest")
+            },
+            daily: {
+                name: "Daily Stretches",
+                exercises: exerciseDatabase.filter(e => e.category === "daily")
+            },
+            rehab: {
+                name: "Rehabilitation",
+                exercises: exerciseDatabase.filter(e => e.category === "rehab")
+            },
+            strength: {
+                name: "Strength",
+                exercises: exerciseDatabase.filter(e => e.category === "strength")
+            }
+        };
+
+        // App state
+        let currentCategory = null;
+        let selectedExercises = new Map();
+        let currentWorkout = [];
+        let currentExerciseIndex = 0;
+        let timerInterval = null;
+        let isPaused = true;
+        let remainingTime = 0;
+        let totalWorkoutTime = 0;
+
+        // Screen management
+        function showScreen(screen) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screen + 'Screen').classList.add('active');
+
+            // Show/hide FAB based on screen
+            const fab = document.querySelector('.fab');
+            if (fab) {
+                fab.style.display = (screen === 'home') ? 'flex' : 'none';
+            }
+
+            // Update nav active states
+            const screenToNavIndex = {
+                'home': 0,
+                'search': 1,
+                'progress': 2,
+                'settings': 3,
+                'addExercise': null, // No nav button for this
+                'category': null,
+                'workout': null,
+                'complete': null
+            };
+
+            document.querySelectorAll('.nav-item').forEach((item, index) => {
+                const navIndex = screenToNavIndex[screen];
+                item.classList.toggle('active', navIndex !== null && index === navIndex);
+            });
+        }
+
+        function showCategory(categoryId) {
+            currentCategory = categoryId;
+            selectedExercises.clear();
+
+            const categoryNames = {
+                'latest': 'Latest',
+                'daily': 'Daily Stretches',
+                'rehab': 'Rehabilitation',
+                'strength': 'Strength'
+            };
+
+            document.getElementById('categoryTitle').textContent = categoryNames[categoryId] || 'Exercises';
+
+            const list = document.getElementById('exerciseList');
+
+            // Use exercises.json if available, otherwise fallback
+            let exercises = [];
+            if (allExercises.length > 0) {
+                // Map category IDs to JSON categories
+                const categoryMap = {
+                    'latest': 'Latest',
+                    'daily': 'Daily Stretches',
+                    'rehab': 'Rehabilitation',
+                    'strength': 'Strength'
+                };
+                exercises = allExercises.filter(ex => ex.category === categoryMap[categoryId]);
+            } else {
+                exercises = categories[categoryId].exercises;
+            }
+
+            // Group exercises by body area
+            const grouped = {};
+            const areaLabels = {
+                'shoulder': 'Shoulder',
+                'neck': 'Neck',
+                'thoracic': 'Upper Back',
+                'lowback_core': 'Lower Back & Core',
+                'hip_glute': 'Hip & Glutes',
+                'knee': 'Knee',
+                'ankle_foot': 'Ankle & Foot',
+                'ankle_calf': 'Calf',
+                'wrist_hand': 'Wrist & Hand',
+                'hand_wrist': 'Hand & Wrist',
+                'elbow': 'Elbow',
+                'core': 'Core',
+                'fullbody': 'Full Body',
+                'general': 'General'
+            };
+
+            exercises.forEach(ex => {
+                const areas = ex.tag_area || ['general'];
+                areas.forEach(area => {
+                    if (!grouped[area]) grouped[area] = [];
+                    grouped[area].push(ex);
+                });
+            });
+
+            // Render grouped exercises
+            list.innerHTML = Object.keys(grouped).map(area => {
+                const areaExercises = grouped[area];
+                const areaLabel = areaLabels[area] || area;
+                const areaId = `area-${area}`;
+
+                return `
+                    <div class="exercise-group">
+                        <div class="exercise-group-header" onclick="toggleExerciseGroup('${areaId}')">
+                            <h3 class="exercise-group-title">${areaLabel}</h3>
+                            <div class="exercise-group-count">${areaExercises.length}</div>
+                            <svg class="exercise-group-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </div>
+                        <div class="exercise-group-list" id="${areaId}">
+                            ${areaExercises.map(ex => `
+                                <div class="exercise-card" data-id="${ex.id}" onclick="toggleExercise('${ex.id}')">
+                                    <div class="exercise-check">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                            <path d="M20 6L9 17l-5-5"/>
+                                        </svg>
+                                    </div>
+                                    <div class="exercise-info">
+                                        <div class="exercise-name">${ex.exercise || ex.name}</div>
+                                        <div class="exercise-desc">${ex.good_for || ex.goodFor}</div>
+                                        ${(ex.equipment && ex.equipment !== 'Geen') ? `<div class="exercise-equipment">${ex.equipment}</div>` : ''}
+                                    </div>
+                                    <div class="exercise-duration">60s</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateStartButton();
+            showScreen('category');
+        }
+
+        function toggleExerciseGroup(groupId) {
+            const group = document.getElementById(groupId);
+            const header = group.previousElementSibling;
+            group.classList.toggle('open');
+            header.classList.toggle('open');
+        }
+
+        function toggleExercise(exerciseId) {
+            const card = document.querySelector(`[data-id="${exerciseId}"]`);
+
+            // Find exercise from allExercises or fallback to categories
+            let exercise;
+            if (allExercises.length > 0) {
+                exercise = allExercises.find(e => e.id === exerciseId);
+                // Convert to workout format
+                if (exercise) {
+                    exercise = {
+                        id: exercise.id,
+                        name: exercise.exercise || exercise.name,
+                        category: currentCategory,
+                        equipment: exercise.equipment || 'Geen',
+                        steps: exercise.steps,
+                        cues: exercise.cues_feel || '',
+                        goodFor: exercise.good_for || '',
+                        duration: 60,
+                        muscles: mapMusclesFromTags(exercise.tag_area || [])
+                    };
+                }
+            } else {
+                exercise = categories[currentCategory].exercises.find(e => e.id === exerciseId);
+            }
+
+            if (selectedExercises.has(exerciseId)) {
+                selectedExercises.delete(exerciseId);
+                card.classList.remove('selected');
+            } else {
+                selectedExercises.set(exerciseId, exercise);
+                card.classList.add('selected');
+            }
+
+            updateStartButton();
+        }
+
+        function updateStartButton() {
+            const btn = document.getElementById('startBtn');
+            const count = selectedExercises.size;
+
+            if (count === 0) {
+                btn.disabled = true;
+                btn.textContent = 'Select exercises to start';
+            } else {
+                btn.disabled = false;
+                btn.textContent = `Start ${count} exercise${count > 1 ? 's' : ''}`;
+            }
+        }
+
+        // Workout functions
+        function startWorkout(exercises = null) {
+            // Use passed exercises or fall back to selected exercises
+            if (exercises && exercises.length > 0) {
+                currentWorkout = exercises;
+            } else {
+                currentWorkout = Array.from(selectedExercises.values());
+            }
+
+            currentExerciseIndex = 0;
+            totalWorkoutTime = 0;
+
+            showScreen('workout');
+            loadExercise(0);
+        }
+
+        function loadExercise(index) {
+            const exercise = currentWorkout[index];
+
+            document.getElementById('currentExercise').textContent = index + 1;
+            document.getElementById('totalExercises').textContent = currentWorkout.length;
+            document.getElementById('exerciseName').textContent = exercise.name;
+            document.getElementById('exerciseInstruction').textContent = exercise.steps;
+
+            // Update cues if element exists
+            const cuesEl = document.getElementById('exerciseCues');
+            if (cuesEl) cuesEl.textContent = exercise.cues || '';
+
+            const progress = (index / currentWorkout.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+
+            // Update muscles
+            document.querySelectorAll('.muscle').forEach(m => m.classList.remove('active'));
+            exercise.muscles.forEach(muscleId => {
+                document.getElementById(muscleId)?.classList.add('active');
+            });
+
+            remainingTime = exercise.duration;
+            updateTimerDisplay();
+
+            // Next preview
+            const nextPreview = document.getElementById('nextPreview');
+            if (index < currentWorkout.length - 1) {
+                nextPreview.style.display = 'flex';
+                document.getElementById('nextExerciseName').textContent = currentWorkout[index + 1].name;
+            } else {
+                nextPreview.style.display = 'none';
+            }
+
+            isPaused = true;
+            updatePlayPauseButton();
+        }
+
+        function updateTimerDisplay() {
+            document.getElementById('timerSeconds').textContent = remainingTime;
+        }
+
+        function togglePlayPause() {
+            isPaused = !isPaused;
+            updatePlayPauseButton();
+
+            if (!isPaused) {
+                startTimer();
+            } else {
+                stopTimer();
+            }
+        }
+
+        function updatePlayPauseButton() {
+            document.getElementById('playIcon').style.display = isPaused ? 'block' : 'none';
+            document.getElementById('pauseIcon').style.display = isPaused ? 'none' : 'block';
+        }
+
+        function skipTime(seconds) {
+            remainingTime += seconds;
+
+            // Don't go below 0
+            if (remainingTime < 0) {
+                remainingTime = 0;
+            }
+
+            // Don't go above exercise duration + 30s
+            const maxTime = currentWorkout[currentExerciseIndex].duration + 30;
+            if (remainingTime > maxTime) {
+                remainingTime = maxTime;
+            }
+
+            updateTimerDisplay();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                remainingTime--;
+                totalWorkoutTime++;
+                updateTimerDisplay();
+
+                if (remainingTime <= 0) {
+                    stopTimer();
+                    nextExercise();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function nextExercise() {
+            stopTimer();
+            if (currentExerciseIndex < currentWorkout.length - 1) {
+                currentExerciseIndex++;
+                loadExercise(currentExerciseIndex);
+                isPaused = false;
+                updatePlayPauseButton();
+                startTimer();
+            } else {
+                completeWorkout();
+            }
+        }
+
+        function prevExercise() {
+            stopTimer();
+            if (currentExerciseIndex > 0) {
+                currentExerciseIndex--;
+                loadExercise(currentExerciseIndex);
+            }
+        }
+
+        function completeWorkout() {
+            stopTimer();
+
+            document.getElementById('statExercises').textContent = currentWorkout.length;
+            const minutes = Math.floor(totalWorkoutTime / 60);
+            const seconds = totalWorkoutTime % 60;
+            document.getElementById('statTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            showScreen('complete');
+        }
+
+        function closeWorkout() {
+            if (confirm('Stop this workout?')) {
+                stopTimer();
+                showScreen('home');
+            }
+        }
+
+        // ===============================
+        // Add Custom Exercise
+        // ===============================
+
+        let customExercises = [];
+
+        // Load custom exercises from localStorage
+        function loadCustomExercises() {
+            const stored = localStorage.getItem('customExercises');
+            if (stored) {
+                try {
+                    customExercises = JSON.parse(stored);
+                    console.log('Loaded', customExercises.length, 'custom exercises');
+                } catch (e) {
+                    console.error('Failed to load custom exercises:', e);
+                    customExercises = [];
+                }
+            }
+        }
+
+        // Save new exercise
+        function saveNewExercise(event) {
+            event.preventDefault();
+
+            // Get form values
+            const name = document.getElementById('newExerciseName').value;
+            const category = document.getElementById('newExerciseCategory').value;
+            const equipment = document.getElementById('newExerciseEquipment').value || 'Geen';
+            const steps = document.getElementById('newExerciseSteps').value;
+            const cues = document.getElementById('newExerciseCues').value;
+            const goodFor = document.getElementById('newExerciseGoodFor').value;
+            const intensity = document.getElementById('newExerciseIntensity').value;
+
+            // Get selected body areas
+            const bodyAreas = Array.from(document.querySelectorAll('input[name="bodyArea"]:checked'))
+                .map(cb => cb.value);
+
+            if (bodyAreas.length === 0) {
+                alert('Please select at least one body area');
+                return;
+            }
+
+            // Get selected goals
+            const goals = Array.from(document.querySelectorAll('input[name="goal"]:checked'))
+                .map(cb => cb.value);
+
+            // Create new exercise object
+            const newExercise = {
+                id: `custom-${Date.now()}`,
+                exercise: name,
+                category: category,
+                equipment: equipment,
+                steps: steps,
+                cues_feel: cues,
+                good_for: goodFor,
+                tag_goal: goals,
+                tag_area: bodyAreas,
+                tag_feel: ['general'],
+                tag_intensity: intensity,
+                tag_equipment: [equipment.toLowerCase()],
+                tag_contra: [],
+                search_text: `${name.toLowerCase()} ${category.toLowerCase()} ${bodyAreas.join(' ')} ${goals.join(' ')}`
+            };
+
+            // Add to custom exercises
+            customExercises.push(newExercise);
+
+            // Save to localStorage
+            localStorage.setItem('customExercises', JSON.stringify(customExercises));
+
+            // Add to allExercises
+            allExercises.push(newExercise);
+
+            console.log('Saved new exercise:', newExercise);
+
+            // Reset form
+            document.getElementById('addExerciseForm').reset();
+
+            // Show confirmation and go back
+            alert('Exercise added successfully!');
+            showScreen('home');
+        }
+
+        // Delete custom exercise
+        function deleteCustomExercise(exerciseId) {
+            if (!confirm('Delete this exercise?')) return;
+
+            customExercises = customExercises.filter(ex => ex.id !== exerciseId);
+            localStorage.setItem('customExercises', JSON.stringify(customExercises));
+
+            // Remove from allExercises
+            allExercises = allExercises.filter(ex => ex.id !== exerciseId);
+
+            console.log('Deleted exercise:', exerciseId);
+        }
+
+        // Load custom exercises on startup
+        loadCustomExercises();
+
+        // ===============================
+        // Survey / Quick Check-in System
+        // ===============================
+
+        let surveyCurrentSlide = 0;
+        const surveyTotalSlides = 5;
+        const surveyAnswers = {
+            goals: [],
+            areas: [],
+            feels: [],
+            intensity: 'medium',
+            timeMinutes: 10,
+            equipment: ['none'],
+            avoid: []
+        };
+        let recommendedExercises = [];
+
+        // Initialize survey
+        function initSurvey() {
+            const slides = document.querySelectorAll('.survey-slide');
+
+            slides.forEach(slide => {
+                const options = slide.querySelectorAll('.survey-option');
+                options.forEach(option => {
+                    option.addEventListener('click', function() {
+                        // For goals and areas, allow multiple selection
+                        const question = slide.dataset.question;
+                        if (question === 'goals' || question === 'areas') {
+                            this.classList.toggle('selected');
+                        } else {
+                            // Single selection for other questions
+                            slide.querySelectorAll('.survey-option').forEach(o => o.classList.remove('selected'));
+                            this.classList.add('selected');
+                        }
+
+                        // Save answer
+                        saveSurveyAnswer(slide);
+                    });
+                });
+            });
+
+            updateSurveyNav();
+        }
+
+        function saveSurveyAnswer(slide) {
+            const question = slide.dataset.question;
+            const selected = slide.querySelectorAll('.survey-option.selected');
+
+            if (question === 'goals' || question === 'areas' || question === 'feels') {
+                surveyAnswers[question] = Array.from(selected).map(el => el.dataset.value);
+            } else if (question === 'timeMinutes') {
+                const val = selected[0]?.dataset.value;
+                surveyAnswers.timeMinutes = val ? parseInt(val) : 10;
+            } else if (question === 'intensity') {
+                surveyAnswers.intensity = selected[0]?.dataset.value || 'medium';
+            }
+
+            console.log(`Saved answer for ${question}:`, surveyAnswers[question] || surveyAnswers.intensity || surveyAnswers.timeMinutes);
+        }
+
+        function surveyNext() {
+            const currentSlide = document.querySelectorAll('.survey-slide')[surveyCurrentSlide];
+            saveSurveyAnswer(currentSlide);
+
+            if (surveyCurrentSlide < surveyTotalSlides - 1) {
+                surveyCurrentSlide++;
+                updateSurveySlide();
+            } else {
+                // Last slide - show results
+                showSurveyResults();
+            }
+        }
+
+        function surveyPrev() {
+            if (surveyCurrentSlide > 0) {
+                surveyCurrentSlide--;
+                updateSurveySlide();
+            }
+        }
+
+        function updateSurveySlide() {
+            const track = document.getElementById('surveySlidesTrack');
+            track.style.transform = `translateX(-${surveyCurrentSlide * 100}%)`;
+            updateSurveyNav();
+            updateSurveyProgress();
+        }
+
+        function updateSurveyNav() {
+            const prevBtn = document.getElementById('surveyPrev');
+            const nextBtn = document.getElementById('surveyNext');
+
+            prevBtn.disabled = surveyCurrentSlide === 0;
+
+            // Change next button to checkmark on last slide
+            if (surveyCurrentSlide === surveyTotalSlides - 1) {
+                nextBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                `;
+                nextBtn.classList.add('survey-submit');
+            } else {
+                nextBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                `;
+                nextBtn.classList.remove('survey-submit');
+            }
+        }
+
+        function updateSurveyProgress() {
+            const dots = document.querySelectorAll('.survey-progress-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.remove('active', 'completed');
+                if (index === surveyCurrentSlide) {
+                    dot.classList.add('active');
+                } else if (index < surveyCurrentSlide) {
+                    dot.classList.add('completed');
+                }
+            });
+        }
+
+        async function showSurveyResults() {
+            // Hide slides and nav, show results
+            document.getElementById('surveySlides').style.display = 'none';
+            document.querySelector('.survey-nav').style.display = 'none';
+            document.getElementById('surveyResults').style.display = 'block';
+
+            // Load exercises and get recommendations
+            try {
+                console.log('Attempting to load exercises.json...');
+                const response = await fetch('./exercises.json');
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const exercises = await response.json();
+                console.log('Successfully loaded exercises.json:', exercises.length, 'exercises');
+
+                // Use the recommender if available, otherwise simple filter
+                recommendedExercises = getRecommendedExercises(exercises);
+                document.getElementById('exerciseCount').textContent = recommendedExercises.length;
+            } catch (error) {
+                console.error('ERROR loading exercises.json:', error);
+                console.log('Falling back to built-in database');
+                recommendedExercises = filterExercisesByProfile(exerciseDatabase);
+                document.getElementById('exerciseCount').textContent = recommendedExercises.length;
+            }
+        }
+
+        // Simple recommendation function (fallback if recommender.js not loaded)
+        function getRecommendedExercises(exercises) {
+            const profile = surveyAnswers;
+
+            console.log('Profile:', profile);
+            console.log('Total exercises:', exercises.length);
+
+            const intensityRank = { low: 1, medium: 2, high: 3 };
+            const userIntensity = intensityRank[profile.intensity || 'medium'] || 2;
+
+            // Filter exercises by intensity
+            let filtered = exercises.filter(ex => {
+                const exI = intensityRank[ex.tag_intensity || 'medium'] || 2;
+                return exI <= userIntensity;
+            });
+
+            console.log('After intensity filter:', filtered.length);
+
+            // Score exercises
+            const scored = filtered.map(ex => {
+                let score = 0;
+
+                // Goals (most important - 3 points each)
+                if (profile.goals?.length) {
+                    const goalTags = ex.tag_goal || [];
+                    profile.goals.forEach(g => {
+                        if (goalTags.includes(g)) score += 3;
+                    });
+                }
+
+                // Areas (2 points each)
+                if (profile.areas?.length) {
+                    const areaTags = ex.tag_area || [];
+                    profile.areas.forEach(a => {
+                        if (areaTags.includes(a)) score += 2;
+                    });
+                }
+
+                // Feels (2 points each)
+                if (profile.feels?.length) {
+                    const feelTags = ex.tag_feel || [];
+                    profile.feels.forEach(f => {
+                        if (feelTags.includes(f)) score += 2;
+                    });
+                }
+
+                return { ex, score };
+            }).sort((a, b) => b.score - a.score);
+
+            console.log('Top 10 scores:', scored.slice(0, 10).map(s => ({ name: s.ex.exercise, score: s.score })));
+
+            // Get max results based on time
+            const maxResults = profile.timeMinutes <= 5 ? 3 :
+                              profile.timeMinutes <= 10 ? 5 :
+                              profile.timeMinutes <= 20 ? 7 : 9;
+
+            const results = scored.slice(0, maxResults).map(s => s.ex);
+            console.log('Recommended exercises:', results.map(r => r.exercise));
+
+            return results;
+        }
+
+        // Filter built-in database - convert to same format and use same logic
+        function filterExercisesByProfile(exercises) {
+            console.log('Using built-in database with', exercises.length, 'exercises');
+
+            // Convert built-in format to exercises.json format
+            const convertedExercises = exercises.map(ex => ({
+                id: ex.id,
+                exercise: ex.name,
+                equipment: ex.equipment,
+                steps: ex.steps,
+                cues_feel: ex.cues,
+                good_for: ex.goodFor,
+                tag_goal: [], // Built-in doesn't have tags, will score lower
+                tag_area: [],
+                tag_feel: [],
+                tag_intensity: 'medium'
+            }));
+
+            return getRecommendedExercises(convertedExercises);
+        }
+
+        function showRecommendedExercises() {
+            // Convert recommended exercises to workout format
+            if (recommendedExercises.length > 0) {
+                console.log('Converting recommended exercises to workout format...');
+
+                // Map the JSON exercises to our workout format
+                const workoutExercises = recommendedExercises.map(ex => {
+                    const muscles = mapMusclesFromTags(ex.tag_area || []);
+                    console.log(`Exercise: ${ex.exercise}, tag_area:`, ex.tag_area, '→ muscles:', muscles);
+
+                    return {
+                        id: ex.id,
+                        name: ex.exercise || ex.name,
+                        category: 'recommended',
+                        equipment: ex.equipment || 'Geen',
+                        steps: ex.steps,
+                        cues: ex.cues_feel || ex.cues,
+                        goodFor: ex.good_for || ex.goodFor,
+                        duration: 60,
+                        muscles: muscles
+                    };
+                });
+
+                console.log('Final workout exercises:', workoutExercises);
+                startWorkout(workoutExercises);
+            }
+        }
+
+        // Map tag_area values to muscle IDs
+        function mapMusclesFromTags(areaTags) {
+            if (!areaTags || !Array.isArray(areaTags)) {
+                console.warn('Invalid areaTags:', areaTags);
+                return [];
+            }
+
+            const muscleMap = {
+                'shoulder': ['m-shoulder-l', 'm-shoulder-r'],
+                'neck': ['m-neck'],
+                'thoracic': ['m-back', 'm-traps'],
+                'lowback_core': ['m-core', 'm-back'],
+                'hip_glute': ['m-hip-l', 'm-hip-r'],
+                'knee': ['m-quad-l', 'm-quad-r'],
+                'ankle_foot': ['m-calf-l', 'm-calf-r'],
+                'ankle_calf': ['m-calf-l', 'm-calf-r'],
+                'wrist': ['m-forearm-l', 'm-forearm-r'],
+                'wrist_hand': ['m-forearm-l', 'm-forearm-r'],
+                'elbow': ['m-forearm-l', 'm-forearm-r', 'm-bicep-l', 'm-bicep-r'],
+                'core': ['m-core'],
+                'core_lateral': ['m-core', 'm-oblique-l', 'm-oblique-r'],
+                'fullbody': ['m-core', 'm-shoulder-l', 'm-shoulder-r', 'm-hip-l', 'm-hip-r', 'm-quad-l', 'm-quad-r'],
+                'general': ['m-core']  // Fallback for general exercises
+            };
+
+            const muscles = [];
+            areaTags.forEach(tag => {
+                if (muscleMap[tag]) {
+                    muscles.push(...muscleMap[tag]);
+                } else {
+                    console.log('Unmapped area tag:', tag);
+                }
+            });
+
+            const uniqueMuscles = [...new Set(muscles)];
+            console.log('Mapped muscles for tags', areaTags, '→', uniqueMuscles);
+            return uniqueMuscles;
+        }
+
+        function dismissSurvey() {
+            const section = document.getElementById('surveySection');
+            section.style.transition = 'all 0.3s ease-out';
+            section.style.opacity = '0';
+            section.style.transform = 'translateX(-100%)';
+            setTimeout(() => {
+                section.classList.add('dismissed');
+            }, 300);
+        }
+
+        function resetSurvey() {
+            surveyCurrentSlide = 0;
+            surveyAnswers.goals = [];
+            surveyAnswers.areas = [];
+            surveyAnswers.feels = [];
+            surveyAnswers.intensity = 'medium';
+            surveyAnswers.timeMinutes = 10;
+
+            // Reset UI
+            document.querySelectorAll('.survey-option').forEach(o => o.classList.remove('selected'));
+            document.getElementById('surveySlides').style.display = 'block';
+            document.querySelector('.survey-nav').style.display = 'flex';
+            document.getElementById('surveyResults').style.display = 'none';
+            updateSurveySlide();
+
+            // Show section again
+            const section = document.getElementById('surveySection');
+            section.classList.remove('dismissed');
+            section.style.opacity = '1';
+            section.style.transform = 'translateX(0)';
+        }
+
+        function redoSurvey() {
+            resetSurvey();
+        }
+
+        // Initialize survey on load
+        initSurvey();
+
+        // ===============================
+        // Search Functionality
+        // ===============================
+
+        let allExercises = [];
+        let searchSelectedExercises = new Set();
+
+        // Load exercises for search
+        async function loadSearchExercises() {
+            try {
+                const response = await fetch('./exercises.json');
+                if (response.ok) {
+                    allExercises = await response.json();
+                    console.log('Loaded', allExercises.length, 'exercises from JSON');
+                }
+            } catch (error) {
+                console.error('Failed to load exercises for search:', error);
+                allExercises = exerciseDatabase.map(ex => ({
+                    id: ex.id,
+                    exercise: ex.name,
+                    equipment: ex.equipment,
+                    steps: ex.steps,
+                    cues_feel: ex.cues,
+                    good_for: ex.goodFor,
+                    tag_goal: [],
+                    tag_area: [],
+                    tag_feel: [],
+                    tag_intensity: 'medium'
+                }));
+            }
+
+            // Merge custom exercises
+            allExercises = [...allExercises, ...customExercises];
+            console.log('Total exercises including custom:', allExercises.length);
+        }
+
+        // Perform search
+        function performSearch(query) {
+            const trimmedQuery = query.trim().toLowerCase();
+
+            // Show/hide empty state
+            const emptyEl = document.getElementById('searchEmpty');
+            const resultsEl = document.getElementById('searchResults');
+            const counterEl = document.getElementById('searchCounter');
+
+            if (!trimmedQuery) {
+                emptyEl.style.display = 'block';
+                resultsEl.innerHTML = '';
+                counterEl.style.display = 'none';
+                return;
+            }
+
+            emptyEl.style.display = 'none';
+
+            // Search through exercises
+            const results = allExercises.filter(ex => {
+                const searchText = ex.search_text || '';
+                const exercise = ex.exercise || '';
+                const combined = (searchText + ' ' + exercise).toLowerCase();
+                return combined.includes(trimmedQuery);
+            });
+
+            // Update counter
+            document.getElementById('searchCount').textContent = results.length;
+            counterEl.style.display = 'block';
+
+            // Render results
+            if (results.length === 0) {
+                resultsEl.innerHTML = `
+                    <div style="text-align: center; margin-top: 40px; color: var(--text-secondary);">
+                        <p>No exercises found for "${query}"</p>
+                    </div>
+                `;
+                return;
+            }
+
+            resultsEl.innerHTML = results.map(ex => {
+                const isSelected = searchSelectedExercises.has(ex.id);
+                return `
+                    <div class="search-result-card ${isSelected ? 'selected' : ''}" onclick="toggleSearchExercise('${ex.id}')" style="background: var(--bg-card); border: 1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}; border-radius: var(--radius-sm); padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                            <div style="flex: 1;">
+                                <div style="font-size: 15px; font-weight: 600; margin-bottom: 4px;">${ex.exercise}</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">${ex.equipment || 'No equipment'}</div>
+                            </div>
+                            <div style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 12px; background: ${isSelected ? 'var(--accent)' : 'transparent'};">
+                                ${isSelected ? '<svg style="width: 14px; height: 14px; stroke: white;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>' : ''}
+                            </div>
+                        </div>
+                        ${ex.good_for ? `<div style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">${ex.good_for}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Toggle exercise selection
+        function toggleSearchExercise(exerciseId) {
+            const exercise = allExercises.find(ex => ex.id === exerciseId);
+            if (!exercise) return;
+
+            if (searchSelectedExercises.has(exerciseId)) {
+                searchSelectedExercises.delete(exerciseId);
+            } else {
+                searchSelectedExercises.add(exerciseId);
+            }
+
+            // Update UI
+            const currentQuery = document.getElementById('searchInput').value;
+            performSearch(currentQuery);
+
+            // Show/hide workout button
+            const workoutBtn = document.getElementById('searchStartWorkout');
+            if (searchSelectedExercises.size > 0) {
+                workoutBtn.style.display = 'block';
+                document.getElementById('selectedCount').textContent = searchSelectedExercises.size;
+            } else {
+                workoutBtn.style.display = 'none';
+            }
+        }
+
+        // Start workout with selected exercises
+        function startSearchWorkout() {
+            if (searchSelectedExercises.size === 0) return;
+
+            const workoutExercises = Array.from(searchSelectedExercises).map(id => {
+                const ex = allExercises.find(e => e.id === id);
+                return {
+                    id: ex.id,
+                    name: ex.exercise,
+                    category: 'search',
+                    equipment: ex.equipment || 'Geen',
+                    steps: ex.steps,
+                    cues: ex.cues_feel || '',
+                    goodFor: ex.good_for || '',
+                    duration: 60,
+                    muscles: mapMusclesFromTags(ex.tag_area || [])
+                };
+            });
+
+            // Clear search and selection
+            document.getElementById('searchInput').value = '';
+            searchSelectedExercises.clear();
+            document.getElementById('searchStartWorkout').style.display = 'none';
+            document.getElementById('searchEmpty').style.display = 'block';
+            document.getElementById('searchResults').innerHTML = '';
+            document.getElementById('searchCounter').style.display = 'none';
+
+            // Start workout
+            startWorkout(workoutExercises);
+        }
+
+        // Load exercises when app starts
+        loadSearchExercises();
+
+        // ===============================
+        // Today's Pick - Morning Mobility
+        // ===============================
+
+        function startMorningMobility() {
+            if (allExercises.length === 0) {
+                console.log('Exercises not loaded yet, using built-in database');
+                // Fallback to built-in if exercises.json hasn't loaded
+                const morningExercises = exerciseDatabase.slice(0, 4);
+                startWorkout(morningExercises);
+                return;
+            }
+
+            // Filter exercises suitable for morning mobility
+            const suitable = allExercises.filter(ex => {
+                // Look for mobility, flexibility, low intensity
+                const hasGoodGoal = ex.tag_goal?.some(g =>
+                    ['mobility', 'flexibility', 'relax', 'posture', 'balance'].includes(g)
+                );
+                const isLowIntensity = ex.tag_intensity === 'low' || ex.tag_intensity === 'medium';
+                const notHighImpact = !ex.tag_contra?.includes('high_impact');
+
+                return hasGoodGoal && isLowIntensity && notHighImpact;
+            });
+
+            console.log('Found', suitable.length, 'suitable morning mobility exercises');
+
+            // Shuffle and pick 4-5 exercises
+            const shuffled = suitable.sort(() => Math.random() - 0.5);
+            const selected = shuffled.slice(0, 5);
+
+            if (selected.length === 0) {
+                console.log('No suitable exercises found, using fallback');
+                const morningExercises = exerciseDatabase.slice(0, 4);
+                startWorkout(morningExercises);
+                return;
+            }
+
+            // Convert to workout format
+            const workoutExercises = selected.map(ex => ({
+                id: ex.id,
+                name: ex.exercise,
+                category: 'morning',
+                equipment: ex.equipment || 'Geen',
+                steps: ex.steps,
+                cues: ex.cues_feel || '',
+                goodFor: ex.good_for || '',
+                duration: 60,
+                muscles: mapMusclesFromTags(ex.tag_area || [])
+            }));
+
+            console.log('Starting Morning Mobility workout with', workoutExercises.length, 'exercises');
+            startWorkout(workoutExercises);
+        }
+
+        // Greeting based on time
+        function updateGreeting() {
+            const hour = new Date().getHours();
+            let greeting = 'Good morning.';
+            if (hour >= 12 && hour < 17) greeting = 'Good afternoon.';
+            else if (hour >= 17) greeting = 'Good evening.';
+            document.querySelector('.header h1').textContent = greeting;
+        }
+        updateGreeting();
+    </script>
+</body>
+</html>
