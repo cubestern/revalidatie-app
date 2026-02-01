@@ -1557,12 +1557,17 @@
                 <div class="today-label">Today's pick</div>
                 <div class="today-title" id="todayTitle">Morning Mobility</div>
                 <div class="today-desc" id="todayDesc">A gentle 10-minute routine to start your day right.</div>
-                <a href="#" class="today-btn" onclick="startMorningMobility(); return false;">
-                    Start now
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
-                </a>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 12px;">
+                    <a href="#" class="today-btn" onclick="startMorningMobility(); return false;">
+                        Start now
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="today-btn" onclick="showScreen('importYoutube'); return false;" style="background: transparent; color: var(--text); border: 1px solid var(--border);">
+                        YouTube Import
+                    </a>
+                </div>
             </div>
 
             <!-- Stats -->
@@ -2016,6 +2021,58 @@
                         Save Exercise
                     </button>
                 </form>
+            </div>
+        </div>
+
+        <!-- Import YouTube Screen -->
+        <div class="screen" id="importYoutubeScreen">
+            <div class="detail-header">
+                <button class="back-btn" onclick="showScreen('home')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                <h1 class="detail-title">Import from YouTube</h1>
+            </div>
+            <div style="padding: 24px; padding-bottom: 100px;">
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">
+                    Paste a YouTube video URL to extract exercises from its captions.
+                </p>
+                <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+                    <input type="text" id="youtubeUrlInput" class="form-input" placeholder="https://youtube.com/watch?v=..." style="flex: 1;">
+                    <button onclick="fetchYoutubeTranscript()" class="form-submit-btn" style="white-space: nowrap; padding: 12px 20px;">
+                        Fetch
+                    </button>
+                </div>
+
+                <!-- Loading state -->
+                <div id="ytLoading" style="display: none; text-align: center; padding: 40px 0;">
+                    <div style="font-size: 14px; color: var(--text-secondary);">Fetching transcript...</div>
+                </div>
+
+                <!-- Error state -->
+                <div id="ytError" style="display: none; padding: 16px; background: #fef2f2; border-radius: var(--radius-xs); color: #dc2626; font-size: 14px; margin-bottom: 16px;"></div>
+
+                <!-- Transcript preview -->
+                <div id="ytTranscriptPreview" style="display: none; margin-bottom: 24px;">
+                    <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Transcript</h3>
+                    <div id="ytTranscriptText" style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; max-height: 200px; overflow-y: auto; background: var(--accent-soft); padding: 16px; border-radius: var(--radius-xs);"></div>
+                </div>
+
+                <!-- Extracted exercises -->
+                <div id="ytExercises" style="display: none;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                        <h3 style="font-size: 15px; font-weight: 600;">Extracted Exercises</h3>
+                        <span id="ytExerciseCount" style="font-size: 13px; color: var(--text-muted);"></span>
+                    </div>
+                    <div id="ytExerciseList" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                    <button onclick="saveAllYoutubeExercises()" class="form-submit-btn" style="margin-top: 20px; width: 100%;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                            <path d="M20 6L9 17l-5-5"/>
+                        </svg>
+                        Save All to Library
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -2935,6 +2992,7 @@
                 'progress': 2,
                 'settings': 3,
                 'addExercise': null, // No nav button for this
+                'importYoutube': null,
                 'category': null,
                 'workout': null,
                 'complete': null
@@ -3895,6 +3953,245 @@
 
             console.log('Starting Morning Mobility workout with', workoutExercises.length, 'exercises');
             startWorkout(workoutExercises);
+        }
+
+        // ===============================
+        // YouTube Import
+        // ===============================
+
+        let ytExtractedExercises = [];
+
+        async function fetchYoutubeTranscript() {
+            const urlInput = document.getElementById('youtubeUrlInput');
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                showYtError('Please enter a YouTube URL');
+                return;
+            }
+
+            // Reset states
+            document.getElementById('ytLoading').style.display = 'block';
+            document.getElementById('ytError').style.display = 'none';
+            document.getElementById('ytTranscriptPreview').style.display = 'none';
+            document.getElementById('ytExercises').style.display = 'none';
+
+            try {
+                const response = await fetch(`/api/transcript?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+
+                document.getElementById('ytLoading').style.display = 'none';
+
+                if (!response.ok) {
+                    showYtError(data.error || 'Failed to fetch transcript');
+                    return;
+                }
+
+                if (!data.transcript || data.transcript.length === 0) {
+                    showYtError('No transcript found for this video');
+                    return;
+                }
+
+                // Show full transcript
+                const fullText = data.transcript.map(t => t.text).join(' ');
+                document.getElementById('ytTranscriptText').textContent = fullText;
+                document.getElementById('ytTranscriptPreview').style.display = 'block';
+
+                // Parse exercises from transcript
+                const exercises = parseExercisesFromTranscript(data.transcript);
+                displayExtractedExercises(exercises);
+
+            } catch (error) {
+                document.getElementById('ytLoading').style.display = 'none';
+                showYtError('Network error. Make sure you are online.');
+                console.error('YouTube import error:', error);
+            }
+        }
+
+        function showYtError(message) {
+            const errorEl = document.getElementById('ytError');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        function parseExercisesFromTranscript(transcript) {
+            const fullText = transcript.map(t => t.text).join(' ');
+            const exercises = [];
+
+            // Strategy 1: Look for numbered exercises (1. Exercise Name, 2. Exercise Name)
+            const numberedPattern = /(?:^|\s)(\d+)[.\)]\s*([A-Z][a-zA-Zéèêëàáâäüùúûöòóôïîíì\s\-\/\(\)]+?)(?=\s*\d+[.\)]|\s*$|[.!?]\s)/g;
+            let match;
+            while ((match = numberedPattern.exec(fullText)) !== null) {
+                const name = match[2].trim();
+                if (name.length > 3 && name.length < 80) {
+                    exercises.push({ name, source: 'numbered' });
+                }
+            }
+
+            // Strategy 2: Look for exercises with timing cues in transcript segments
+            if (exercises.length === 0) {
+                // Group transcript by time gaps (pauses often indicate new exercises)
+                const segments = [];
+                let currentSegment = [];
+
+                for (let i = 0; i < transcript.length; i++) {
+                    currentSegment.push(transcript[i]);
+
+                    const nextItem = transcript[i + 1];
+                    const gap = nextItem ? (nextItem.offset - (transcript[i].offset + transcript[i].duration)) : 9999;
+
+                    // If there's a significant gap (>2s) or it's the last item
+                    if (gap > 2000 || i === transcript.length - 1) {
+                        const text = currentSegment.map(t => t.text).join(' ').trim();
+                        if (text.length > 5) {
+                            segments.push(text);
+                        }
+                        currentSegment = [];
+                    }
+                }
+
+                // Look for exercise-like phrases in segments
+                const exerciseKeywords = /stretch|squat|push|pull|plank|lunge|curl|press|raise|row|fly|crunch|twist|bend|hold|bridge|kick|deadlift|rotation|extension|flexion|mobility|warmup|warm.up/i;
+
+                segments.forEach(segment => {
+                    if (exerciseKeywords.test(segment)) {
+                        // Take first ~50 chars as exercise name
+                        const name = segment.split(/[.!?]/)[0].trim().substring(0, 60);
+                        if (name.length > 5) {
+                            exercises.push({ name, source: 'keyword' });
+                        }
+                    }
+                });
+            }
+
+            // Strategy 3: If still nothing, split transcript into roughly equal parts
+            if (exercises.length === 0) {
+                const totalDuration = transcript[transcript.length - 1].offset + transcript[transcript.length - 1].duration;
+                const segmentDuration = totalDuration / Math.min(5, Math.max(2, Math.floor(totalDuration / 15000)));
+                let currentTime = 0;
+                let segmentIndex = 1;
+
+                while (currentTime < totalDuration) {
+                    const segmentTexts = transcript.filter(t =>
+                        t.offset >= currentTime && t.offset < currentTime + segmentDuration
+                    );
+
+                    if (segmentTexts.length > 0) {
+                        const text = segmentTexts.map(t => t.text).join(' ').trim();
+                        const firstSentence = text.split(/[.!?]/)[0].trim().substring(0, 60);
+                        if (firstSentence.length > 3) {
+                            exercises.push({ name: `Exercise ${segmentIndex}: ${firstSentence}`, source: 'time-split' });
+                            segmentIndex++;
+                        }
+                    }
+                    currentTime += segmentDuration;
+                }
+            }
+
+            return exercises;
+        }
+
+        function displayExtractedExercises(exercises) {
+            ytExtractedExercises = exercises;
+
+            if (exercises.length === 0) {
+                showYtError('Could not extract any exercises from this transcript. You can read the transcript above and add exercises manually.');
+                return;
+            }
+
+            document.getElementById('ytExercises').style.display = 'block';
+            document.getElementById('ytExerciseCount').textContent = `${exercises.length} found`;
+
+            const list = document.getElementById('ytExerciseList');
+            list.innerHTML = exercises.map((ex, i) => `
+                <div class="yt-exercise-card" style="
+                    background: var(--bg-card);
+                    border: 1px solid var(--border);
+                    border-radius: var(--radius-xs);
+                    padding: 16px;
+                ">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                        <input type="checkbox" id="ytEx${i}" checked style="width: 18px; height: 18px; accent-color: var(--accent);">
+                        <label for="ytEx${i}" style="font-size: 13px; color: var(--text-muted);">Include</label>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label class="form-label">Exercise Name</label>
+                        <input type="text" class="form-input yt-exercise-name" value="${ex.name.replace(/"/g, '&quot;')}" style="font-size: 14px;">
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Category</label>
+                            <select class="form-input yt-exercise-category" style="font-size: 13px;">
+                                <option value="Latest">Latest</option>
+                                <option value="Daily Stretches">Daily Stretches</option>
+                                <option value="Rehabilitation" selected>Rehabilitation</option>
+                                <option value="Strength">Strength</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Intensity</label>
+                            <select class="form-input yt-exercise-intensity" style="font-size: 13px;">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveAllYoutubeExercises() {
+            const cards = document.querySelectorAll('.yt-exercise-card');
+            let savedCount = 0;
+
+            cards.forEach((card, i) => {
+                const checkbox = card.querySelector(`#ytEx${i}`);
+                if (!checkbox.checked) return;
+
+                const name = card.querySelector('.yt-exercise-name').value.trim();
+                if (!name) return;
+
+                const category = card.querySelector('.yt-exercise-category').value;
+                const intensity = card.querySelector('.yt-exercise-intensity').value;
+
+                const newExercise = {
+                    id: `yt-${Date.now()}-${i}`,
+                    exercise: name,
+                    category: category,
+                    equipment: 'Geen',
+                    steps: '',
+                    cues_feel: '',
+                    good_for: '',
+                    tag_goal: ['mobility'],
+                    tag_area: ['fullbody'],
+                    tag_feel: ['general'],
+                    tag_intensity: intensity,
+                    tag_equipment: ['none'],
+                    tag_contra: [],
+                    search_text: `${name.toLowerCase()} ${category.toLowerCase()} youtube import`
+                };
+
+                customExercises.push(newExercise);
+                allExercises.push(newExercise);
+                savedCount++;
+            });
+
+            if (savedCount > 0) {
+                localStorage.setItem('customExercises', JSON.stringify(customExercises));
+
+                // Show success
+                document.getElementById('ytExercises').innerHTML = `
+                    <div style="text-align: center; padding: 32px 0;">
+                        <div style="font-size: 32px; margin-bottom: 12px;">&#10003;</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">${savedCount} exercise${savedCount > 1 ? 's' : ''} saved!</div>
+                        <div style="font-size: 14px; color: var(--text-secondary);">You can find them in Search and Browse.</div>
+                        <button onclick="showScreen('home')" class="form-submit-btn" style="margin-top: 20px; display: inline-flex;">
+                            Back to Home
+                        </button>
+                    </div>
+                `;
+            }
         }
 
         // Greeting based on time
