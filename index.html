@@ -164,15 +164,35 @@
         [data-theme="dark"] .theme-icon-sun { display: none !important; }
         [data-theme="dark"] .theme-icon-moon { display: block !important; }
 
-        [data-theme="dark"] .today-card { background: #1a1a1a; }
+        /* Dark mode overrides */
+        [data-theme="dark"] .today-card { background: #1e1e1e; }
+        [data-theme="dark"] .today-btn { background: #f0f0f0; color: #111; }
+        [data-theme="dark"] .survey-option { background: #2a2a2a; color: #f0f0f0; }
+        [data-theme="dark"] .survey-option.selected { background: #f0f0f0; color: #111; }
+        [data-theme="dark"] .survey-nav-btn { background: #2a2a2a; }
+        [data-theme="dark"] .survey-card { background: #1a1a1a; }
+        [data-theme="dark"] .stat-card { background: #1a1a1a; }
+        [data-theme="dark"] .category-card { background: #1a1a1a; }
+        [data-theme="dark"] .category-card.featured { background: #1e1e1e; }
         [data-theme="dark"] .form-submit-btn { color: #111; }
+        [data-theme="dark"] .form-input, [data-theme="dark"] .form-input:focus { background: #1a1a1a; color: #f0f0f0; border-color: #2a2a2a; }
+        [data-theme="dark"] select.form-input { background: #1a1a1a; color: #f0f0f0; }
+        [data-theme="dark"] .control-btn { background: #1a1a1a; border-color: #2a2a2a; }
         [data-theme="dark"] .control-btn.primary { background: #f0f0f0; }
         [data-theme="dark"] .control-btn.primary svg { stroke: #111; }
         [data-theme="dark"] .control-btn.primary polygon { fill: #111; }
         [data-theme="dark"] .control-btn.primary rect { fill: #111; }
+        [data-theme="dark"] .skip-btn { background: #1a1a1a; color: #f0f0f0; border-color: #2a2a2a; }
         [data-theme="dark"] .profile-btn { background: #f0f0f0; color: #111; }
         [data-theme="dark"] .nav { background: #111111; border-top-color: #2a2a2a; }
-        [data-theme="dark"] .workout-bottom { background: #111111; }
+        [data-theme="dark"] .nav-item { color: #666; }
+        [data-theme="dark"] .nav-item.active { color: #f0f0f0; }
+        [data-theme="dark"] .workout-bottom { background: #111111; border-top-color: #2a2a2a; }
+        [data-theme="dark"] .exercise-group-header { background: #1a1a1a; }
+        [data-theme="dark"] .exercise-group-list { background: #1a1a1a; border-color: #2a2a2a; }
+        [data-theme="dark"] .complete-btn { background: #f0f0f0; color: #111; }
+        [data-theme="dark"] .start-btn { background: #f0f0f0; color: #111; }
+        [data-theme="dark"] .back-btn { color: #f0f0f0; }
 
         /* Survey Section - Swipeable Check-in */
         .survey-section {
@@ -1961,6 +1981,28 @@
             </div>
         </div>
 
+        <!-- Favorites Screen -->
+        <div class="screen" id="favoritesScreen">
+            <div class="header">
+                <h1>Favorites</h1>
+            </div>
+            <div style="padding: 24px;" id="favoritesContent">
+                <div id="favoritesEmpty" style="text-align: center; margin-top: 60px;">
+                    <svg style="width: 48px; height: 48px; stroke: var(--text-muted); margin-bottom: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                    </svg>
+                    <p style="color: var(--text-secondary); font-size: 15px; margin-bottom: 8px;">No favorites yet</p>
+                    <p style="color: var(--text-muted); font-size: 13px;">Tap the heart icon on any exercise to save it here.</p>
+                </div>
+                <div id="favoritesList"></div>
+                <div id="favoritesStartWorkout" style="position: fixed; bottom: 80px; left: 24px; right: 24px; display: none;">
+                    <button onclick="startFavoritesWorkout()" style="width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); font-family: inherit;">
+                        Start Workout with Favorites
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Progress Screen -->
         <div class="screen" id="progressScreen">
             <div class="header">
@@ -2195,6 +2237,12 @@
                         <path d="M21 21l-4.35-4.35"/>
                     </svg>
                     Search
+                </a>
+                <a class="nav-item" onclick="showScreen('favorites')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                    </svg>
+                    Favorites
                 </a>
                 <a class="nav-item" onclick="showScreen('progress')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -3085,9 +3133,10 @@
             const screenToNavIndex = {
                 'home': 0,
                 'search': 1,
-                'progress': 2,
-                'settings': 3,
-                'addExercise': null, // No nav button for this
+                'favorites': 2,
+                'progress': 3,
+                'settings': 4,
+                'addExercise': null,
                 'importYoutube': null,
                 'category': null,
                 'workout': null,
@@ -3098,6 +3147,11 @@
                 const navIndex = screenToNavIndex[screen];
                 item.classList.toggle('active', navIndex !== null && index === navIndex);
             });
+
+            // Render favorites when navigating to that screen
+            if (screen === 'favorites') {
+                renderFavorites();
+            }
         }
 
         function showCategory(categoryId) {
@@ -3500,6 +3554,105 @@
 
         // Load custom exercises on startup
         loadCustomExercises();
+
+        // ===============================
+        // Favorites System
+        // ===============================
+
+        let favoriteIds = new Set();
+
+        function loadFavorites() {
+            const stored = localStorage.getItem('favoriteExercises');
+            if (stored) {
+                try {
+                    favoriteIds = new Set(JSON.parse(stored));
+                } catch (e) {
+                    favoriteIds = new Set();
+                }
+            }
+        }
+
+        function saveFavorites() {
+            localStorage.setItem('favoriteExercises', JSON.stringify([...favoriteIds]));
+        }
+
+        function toggleFavorite(exerciseId, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            if (favoriteIds.has(exerciseId)) {
+                favoriteIds.delete(exerciseId);
+            } else {
+                favoriteIds.add(exerciseId);
+            }
+            saveFavorites();
+            // Re-render search results if visible
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput && searchInput.value && document.getElementById('searchScreen').classList.contains('active')) {
+                searchExercises(searchInput.value);
+            }
+            // Re-render favorites screen if visible
+            if (document.getElementById('favoritesScreen').classList.contains('active')) {
+                renderFavorites();
+            }
+        }
+
+        function isFavorite(exerciseId) {
+            return favoriteIds.has(exerciseId);
+        }
+
+        function renderFavorites() {
+            const listEl = document.getElementById('favoritesList');
+            const emptyEl = document.getElementById('favoritesEmpty');
+            const startBtn = document.getElementById('favoritesStartWorkout');
+
+            const favoriteExercises = allExercises.filter(ex => favoriteIds.has(ex.id));
+
+            if (favoriteExercises.length === 0) {
+                emptyEl.style.display = 'block';
+                listEl.innerHTML = '';
+                startBtn.style.display = 'none';
+                return;
+            }
+
+            emptyEl.style.display = 'none';
+            startBtn.style.display = 'block';
+
+            listEl.innerHTML = favoriteExercises.map(ex => `
+                <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1; cursor: pointer;" onclick="toggleSearchExercise('${ex.id}')">
+                            <div style="font-size: 15px; font-weight: 600; margin-bottom: 4px;">${ex.exercise || ex.name}</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">${ex.equipment || 'No equipment'}</div>
+                            ${ex.good_for || ex.goodFor ? `<div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px; line-height: 1.4;">${ex.good_for || ex.goodFor}</div>` : ''}
+                        </div>
+                        <button onclick="toggleFavorite('${ex.id}', event)" style="background: none; border: none; cursor: pointer; padding: 4px; flex-shrink: 0; margin-left: 8px;">
+                            <svg style="width: 22px; height: 22px; fill: #e74c3c; stroke: #e74c3c;" viewBox="0 0 24 24" stroke-width="1.5">
+                                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function startFavoritesWorkout() {
+            const favoriteExercises = allExercises.filter(ex => favoriteIds.has(ex.id));
+            if (favoriteExercises.length === 0) return;
+
+            const workoutExercises = favoriteExercises.map(ex => ({
+                id: ex.id,
+                name: ex.exercise || ex.name,
+                steps: ex.steps || '',
+                cues: ex.cues_feel || ex.cues || '',
+                bodyAreas: ex.tag_area || ex.bodyArea || [],
+                duration: 60
+            }));
+
+            startWorkout(workoutExercises);
+        }
+
+        loadFavorites();
 
         // ===============================
         // Survey / Quick Check-in System
@@ -3920,6 +4073,7 @@
 
             resultsEl.innerHTML = results.map(ex => {
                 const isSelected = searchSelectedExercises.has(ex.id);
+                const isFav = isFavorite(ex.id);
                 return `
                     <div class="search-result-card ${isSelected ? 'selected' : ''}" onclick="toggleSearchExercise('${ex.id}')" style="background: var(--bg-card); border: 1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}; border-radius: var(--radius-sm); padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
@@ -3927,7 +4081,12 @@
                                 <div style="font-size: 15px; font-weight: 600; margin-bottom: 4px;">${ex.exercise}</div>
                                 <div style="font-size: 13px; color: var(--text-secondary);">${ex.equipment || 'No equipment'}</div>
                             </div>
-                            <div style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 12px; background: ${isSelected ? 'var(--accent)' : 'transparent'};">
+                            <button onclick="toggleFavorite('${ex.id}', event)" style="background: none; border: none; cursor: pointer; padding: 4px; flex-shrink: 0; margin-left: 4px;">
+                                <svg style="width: 20px; height: 20px; fill: ${isFav ? '#e74c3c' : 'none'}; stroke: ${isFav ? '#e74c3c' : 'var(--text-muted)'};" viewBox="0 0 24 24" stroke-width="1.5">
+                                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                                </svg>
+                            </button>
+                            <div style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 8px; background: ${isSelected ? 'var(--accent)' : 'transparent'};">
                                 ${isSelected ? '<svg style="width: 14px; height: 14px; stroke: white;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>' : ''}
                             </div>
                         </div>
