@@ -28,6 +28,17 @@
             --radius-xs: 8px;
         }
 
+        [data-theme="dark"] {
+            --bg: #111111;
+            --bg-card: #1a1a1a;
+            --text: #f0f0f0;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --border: #2a2a2a;
+            --accent: #f0f0f0;
+            --accent-soft: #1e1e1e;
+        }
+
         body {
             font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg);
@@ -126,6 +137,42 @@
             font-weight: 600;
             font-size: 14px;
         }
+
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-soft);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--border);
+        }
+
+        .theme-toggle svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--text);
+        }
+
+        [data-theme="dark"] .theme-icon-sun { display: none !important; }
+        [data-theme="dark"] .theme-icon-moon { display: block !important; }
+
+        [data-theme="dark"] .today-card { background: #1a1a1a; }
+        [data-theme="dark"] .form-submit-btn { color: #111; }
+        [data-theme="dark"] .control-btn.primary { background: #f0f0f0; }
+        [data-theme="dark"] .control-btn.primary svg { stroke: #111; }
+        [data-theme="dark"] .control-btn.primary polygon { fill: #111; }
+        [data-theme="dark"] .control-btn.primary rect { fill: #111; }
+        [data-theme="dark"] .profile-btn { background: #f0f0f0; color: #111; }
+        [data-theme="dark"] .nav { background: #111111; border-top-color: #2a2a2a; }
+        [data-theme="dark"] .workout-bottom { background: #111111; }
 
         /* Survey Section - Swipeable Check-in */
         .survey-section {
@@ -530,46 +577,6 @@
             height: 20px;
             stroke: white;
             stroke-width: 2.5;
-        }
-
-        .fab-yt {
-            position: fixed;
-            bottom: 152px;
-            right: calc(50% - 240px + 24px);
-            height: 44px;
-            padding: 0 18px;
-            border-radius: 22px;
-            background: #FF0000;
-            border: none;
-            box-shadow: 0 2px 12px rgba(255, 0, 0, 0.25), 0 1px 4px rgba(0, 0, 0, 0.08);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 100;
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 600;
-            color: white;
-            letter-spacing: -0.2px;
-        }
-
-        @media (max-width: 480px) {
-            .fab-yt {
-                right: 24px;
-            }
-        }
-
-        .fab-yt:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(255, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.12);
-        }
-
-        .fab-yt svg {
-            width: 18px;
-            height: 18px;
-            fill: white;
         }
 
         /* Form Styles */
@@ -1116,10 +1123,11 @@
 
         /* Workout Screen */
         .workout-screen {
-            min-height: 100vh;
+            height: 100vh;
             background: var(--bg);
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .workout-header {
@@ -1172,16 +1180,16 @@
 
         /* Body Visualization */
         .workout-body {
-            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 0 24px;
+            flex-shrink: 0;
         }
 
         .body-container {
-            width: 180px;
-            height: 320px;
+            width: 140px;
+            height: 250px;
             position: relative;
         }
 
@@ -1249,12 +1257,20 @@
             border-radius: var(--radius-xs);
         }
 
+        .workout-bottom {
+            padding: 16px 24px 24px;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            text-align: center;
+            flex-shrink: 0;
+        }
+
         .workout-timer {
-            margin-bottom: 32px;
+            margin-bottom: 12px;
         }
 
         .timer-display {
-            font-size: 72px;
+            font-size: 48px;
             font-weight: 700;
             letter-spacing: -2px;
             line-height: 1;
@@ -1271,8 +1287,6 @@
             display: flex;
             justify-content: center;
             gap: 12px;
-            margin-top: 20px;
-            margin-bottom: 32px;
         }
 
         .skip-btn {
@@ -1301,8 +1315,8 @@
         }
 
         .control-btn {
-            width: 56px;
-            height: 56px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             border: 1px solid var(--border);
             background: var(--bg-card);
@@ -1318,8 +1332,8 @@
         }
 
         .control-btn.primary {
-            width: 72px;
-            height: 72px;
+            width: 56px;
+            height: 56px;
             background: var(--accent);
             border: none;
         }
@@ -1351,6 +1365,12 @@
             gap: 12px;
         }
 
+        .next-preview-inline {
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
         .next-preview-label {
             font-size: 12px;
             color: var(--text-muted);
@@ -1361,6 +1381,7 @@
         .next-preview-name {
             font-size: 14px;
             font-weight: 600;
+            color: var(--text);
         }
 
         /* Complete Screen */
@@ -1443,7 +1464,25 @@
                         <h1>Good morning.</h1>
                         <p class="header-subtitle">Ready to stretch?</p>
                     </div>
-                    <div class="profile-btn">JB</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
+                            <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="5"/>
+                                <line x1="12" y1="1" x2="12" y2="3"/>
+                                <line x1="12" y1="21" x2="12" y2="23"/>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                <line x1="1" y1="12" x2="3" y2="12"/>
+                                <line x1="21" y1="12" x2="23" y2="12"/>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                            </svg>
+                            <svg class="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                            </svg>
+                        </button>
+                        <div class="profile-btn">JB</div>
+                    </div>
                 </div>
             </div>
 
@@ -1801,7 +1840,7 @@
                     </div>
                 </div>
 
-                <div class="workout-content">
+                <div class="workout-content" style="flex: 1; overflow-y: auto; padding-bottom: 16px;">
                     <h2 class="workout-exercise-name" id="exerciseName">Nekstrekking</h2>
                     <p class="workout-instruction" id="exerciseInstruction">
                         Kantel je hoofd langzaam naar rechts, houd vast, en herhaal naar links.
@@ -1809,19 +1848,17 @@
                     <p class="workout-cues" id="exerciseCues">
                         Je zoekt een zachte rek, geen pijn.
                     </p>
+                </div>
 
+                <!-- Sticky bottom: timer + controls -->
+                <div class="workout-bottom">
                     <div class="workout-timer">
                         <div class="timer-display" id="timerSeconds">30</div>
                         <div class="timer-label">seconds remaining</div>
                     </div>
 
-                    <!-- Skip time controls -->
-                    <div class="timer-skip-controls">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 16px;">
                         <button class="skip-btn" onclick="skipTime(-10)">-10s</button>
-                        <button class="skip-btn" onclick="skipTime(10)">+10s</button>
-                    </div>
-
-                    <div class="workout-controls">
                         <button class="control-btn" id="prevBtn" onclick="prevExercise()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -1841,13 +1878,12 @@
                                 <path d="M5 12h14M12 5l7 7-7 7"/>
                             </svg>
                         </button>
+                        <button class="skip-btn" onclick="skipTime(10)">+10s</button>
                     </div>
-                </div>
 
-                <div class="next-preview" id="nextPreview">
-                    <div>
-                        <div class="next-preview-label">Up next</div>
-                        <div class="next-preview-name" id="nextExerciseName">Schoudercirkels</div>
+                    <div class="next-preview-inline" id="nextPreview">
+                        <span class="next-preview-label">Up next:</span>
+                        <span class="next-preview-name" id="nextExerciseName">Schoudercirkels</span>
                     </div>
                 </div>
             </div>
@@ -1966,6 +2002,31 @@
                 <h1 class="detail-title">Add Exercise</h1>
             </div>
             <div style="padding: 24px; padding-bottom: 100px;">
+                <!-- YouTube Import Button -->
+                <button onclick="showScreen('importYoutube')" style="
+                    width: 100%;
+                    padding: 14px 20px;
+                    background: white;
+                    border: 1px solid var(--border);
+                    border-radius: var(--radius-xs);
+                    cursor: pointer;
+                    font-family: inherit;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: var(--text);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                    margin-bottom: 24px;
+                    transition: all 0.2s;
+                ">
+                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px; fill: #FF0000;">
+                        <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                    Import from YouTube
+                </button>
+
                 <form id="addExerciseForm" onsubmit="saveNewExercise(event)" style="display: flex; flex-direction: column; gap: 20px;">
                     <!-- Exercise Name -->
                     <div class="form-group">
@@ -2110,14 +2171,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Floating Action Button (YouTube Import) -->
-        <button class="fab-yt" onclick="showScreen('importYoutube')" title="Import from YouTube">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-            </svg>
-            <span>Import from YouTube</span>
-        </button>
 
         <!-- Floating Action Button (Add Exercise) -->
         <button class="fab" onclick="showScreen('addExercise')" title="Add Exercise">
@@ -3022,14 +3075,10 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screen + 'Screen').classList.add('active');
 
-            // Show/hide FABs based on screen
+            // Show/hide FAB based on screen
             const fab = document.querySelector('.fab');
             if (fab) {
                 fab.style.display = (screen === 'home') ? 'flex' : 'none';
-            }
-            const fabYt = document.querySelector('.fab-yt');
-            if (fabYt) {
-                fabYt.style.display = (screen === 'home') ? 'flex' : 'none';
             }
 
             // Update nav active states
@@ -4240,6 +4289,29 @@
                 `;
             }
         }
+
+        // ===============================
+        // Dark Mode Toggle
+        // ===============================
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                html.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Load saved theme
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
 
         // Greeting based on time
         function updateGreeting() {
